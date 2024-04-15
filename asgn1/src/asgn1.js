@@ -68,6 +68,7 @@ function connectVariablesToGLSL() {
 const POINT = 0;
 const TRIANGLE = 1;
 const CIRCLE = 2;
+const ERASE = 3;
 
 // Globals Related to UI
 let g_selectedColor = [1.0, 1.0, 1.0, 1.0];
@@ -77,7 +78,9 @@ let g_selectedSegmentNumber = 5;
 
 function addActionsForHTMLUI() {
     // Button Events
-    document.getElementById("clearButton").onclick = function() {g_shapesList = []; renderAllShapes(); };
+    document.getElementById("clearButton").onclick = function() {g_shapesList = []; points = []; renderAllShapes(); };
+    document.getElementById("eraseButton").onclick = function() {g_selectedType = ERASE; };
+
 
     document.getElementById("pointButton").onclick = function() {g_selectedType = POINT};
     document.getElementById("triButton").onclick = function() {g_selectedType = TRIANGLE};
@@ -110,6 +113,7 @@ function main() {
 }
 
 var g_shapesList = [];
+var points = [];
 
 function click(ev) {
   let [x, y] = convertCoordinatesEventToGL(ev);
@@ -120,13 +124,18 @@ function click(ev) {
     point = new Point();
   } else if (g_selectedType==TRIANGLE) {
     point = new Triangle();
-  } else {
+  } else if (g_selectedType==CIRCLE) {
     point = new Circle();
     point.segments = g_selectedSegmentNumber;
+  } else {
+    point = new Eraser();
+    points.push(x);
+    points.push(y);
   }
   point.position = [x, y];
   point.color = g_selectedColor.slice();
   point.size = g_selectedSize;
+
   g_shapesList.push(point);
 
   // Draw every shape that is supposed to be on the Canvas
@@ -152,5 +161,10 @@ function renderAllShapes() {
     var len = g_shapesList.length;
     for(var i = 0; i < len; i++) {
         g_shapesList[i].render();
-  }
+    }
+
+    var point_len = points.length;
+    for (var i = 1; i < point_len; i++) {
+      drawLine([points[i-3], points[i-2], points[i-1], points[i]], g_selectedSize);
+    }
 }
