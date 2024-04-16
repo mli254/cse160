@@ -11,8 +11,8 @@ class Eraser {
     }
 }
 
-function drawLine(vertices, size) {
-    var rgba = [1.0, 0.0, 0.0, 1.0];
+function drawLine(vertices, size, rgba) {
+    var rgba = rgba;
     var size = size;
     // Pass the color of a point to u_FragColor variable
     gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
