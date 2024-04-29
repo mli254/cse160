@@ -91,24 +91,16 @@ let g_selectedSegmentNumber = 5;
 let g_globalAngle = 0;
 let g_yellowAngle = 0;
 let g_magentaAngle = 0;
+let g_yellowAnimation = false;
+let g_magentaAnimation = false;
 
 function addActionsForHTMLUI() {
     // Button Events
-    // document.getElementById("clearButton").onclick = function() {g_shapesList = []; renderAllShapes(); };
+    document.getElementById("aniYellowOffButton").onclick = function() {g_yellowAnimation = false;};
+    document.getElementById("aniYellowOnButton").onclick = function() {g_yellowAnimation = true;};
+    document.getElementById("aniMagentaOffButton").onclick = function() {g_magentaAnimation = false;};
+    document.getElementById("aniMagentaOnButton").onclick = function() {g_magentaAnimation = true;};
 
-    // document.getElementById("pointButton").onclick = function() {g_selectedType = POINT};
-    // document.getElementById("triButton").onclick = function() {g_selectedType = TRIANGLE};
-    // document.getElementById("circButton").onclick = function() {g_selectedType = CIRCLE};
-
-    // // Color Slider Events
-    // document.getElementById("redslide").addEventListener('mouseup', function() {g_selectedColor[0] = this.value/100;});
-    // document.getElementById("greenslide").addEventListener('mouseup', function() {g_selectedColor[1] = this.value/100;});
-    // document.getElementById("blueslide").addEventListener('mouseup', function() {g_selectedColor[2] = this.value/100;});
-    
-    // // Size/Segment Slider Events
-    // document.getElementById("sizeslide").addEventListener('mouseup', function() {g_selectedSize = this.value;});
-    // document.getElementById("segslide").addEventListener('mouseup', function() {g_selectedSegmentNumber = this.value;});
-    
     // Joint Slider Events 
     document.getElementById("yellowslide").addEventListener('mousemove', function() { g_yellowAngle = this.value; renderAllShapes(); }); 
     document.getElementById("magentaslide").addEventListener('mousemove', function() { g_magentaAngle = this.value; renderAllShapes(); }); 
@@ -128,7 +120,36 @@ function main() {
     // Specify the color for clearing <canvas>
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-    renderAllShapes();
+    // renderAllShapes();
+    requestAnimationFrame(tick);
+}
+
+var g_startTime = performance.now()/1000.0;
+var g_seconds = performance.now()/1000.0 - g_startTime;
+
+// Called by browser repeatedly whenever its time
+function tick() {
+  // Save the current time
+  g_seconds = performance.now()/1000.0 - g_startTime; 
+
+  // Update animation angles
+  updateAnimationAngles();
+  
+  // Drawing everything
+  renderAllShapes();
+
+  // Tell the browser to update again when it's time
+  requestAnimationFrame(tick);
+}
+
+function updateAnimationAngles() {
+    if (g_yellowAnimation) {
+      g_yellowAngle = (45*Math.sin(g_seconds));
+    }
+
+    if (g_magentaAnimation) {
+      g_magentaAngle = (45*Math.sin(3*g_seconds));
+    }
 }
 
 function renderAllShapes() {
@@ -155,7 +176,13 @@ function renderAllShapes() {
     leftArm.color = [1, 1, 0, 1];
     leftArm.matrix.setTranslate(0, -.5, 0.0);
     leftArm.matrix.rotate(-5, 1, 0, 0);
+
     leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
+    // if (g_yellowAnimation) {
+    //   leftArm.matrix.rotate(45*Math.sin(g_seconds), 0, 0, 1);
+    // } else {
+    //   leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
+    // }
     var yellowCoordinatesMat = new Matrix4(leftArm.matrix);
     leftArm.matrix.scale(0.25, .7, .5);
     leftArm.matrix.translate(-.5, 0, 0);
