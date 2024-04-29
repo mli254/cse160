@@ -94,13 +94,16 @@ function connectVariablesToGLSL() {
 
 // Globals Related to UI
 let g_selectedColor = [1.0, 1.0, 1.0, 1.0];
-let g_globalAngle = 0;
+let g_globalAngle = -45;
 let g_globalPitch = 0;
 
-let g_yellowAngle = 0;
-let g_magentaAngle = 0;
-let g_yellowAnimation = false;
-let g_magentaAnimation = false;
+let g_bodyAngle = 0;
+let g_frontArmAngle = 0;
+let g_pawAngle = 0;
+
+let g_bodyAnimation = false;
+let g_frontArmAnimation = false;
+let g_pawAnimation = false;
 let g_animationEvent = false;
 
 let g_prev_x = 0;
@@ -108,14 +111,18 @@ let g_prev_y = 0;
 
 function addActionsForHTMLUI() {
     // Button Events
-    document.getElementById("aniYellowOffButton").onclick = function() {g_yellowAnimation = false;};
-    document.getElementById("aniYellowOnButton").onclick = function() {g_yellowAnimation = true;};
-    document.getElementById("aniMagentaOffButton").onclick = function() {g_magentaAnimation = false;};
-    document.getElementById("aniMagentaOnButton").onclick = function() {g_magentaAnimation = true;};
+    document.getElementById("aniBodyOffButton").onclick = function() {g_bodyAnimation = false;};
+    document.getElementById("aniBodyOnButton").onclick = function() {g_bodyAnimation = true;};
+    
+    document.getElementById("aniFrontArmOffButton").onclick = function() {g_frontArmAnimation = false;};
+    document.getElementById("aniFrontArmOnButton").onclick = function() {g_frontArmAnimation = true;};
+    document.getElementById("aniPawOffButton").onclick = function() {g_pawAnimation = false;};
+    document.getElementById("aniPawOnButton").onclick = function() {g_pawAnimation = true;};
 
     // Joint Slider Events 
-    document.getElementById("yellowslide").addEventListener('mousemove', function() { g_yellowAngle = this.value; renderAllShapes(); }); 
-    document.getElementById("magentaslide").addEventListener('mousemove', function() { g_magentaAngle = this.value; renderAllShapes(); }); 
+    document.getElementById("bodyAngleSlide").addEventListener('mousemove', function() { g_bodyAngle = this.value; renderAllShapes(); }); 
+    document.getElementById("frontArmSlide").addEventListener('mousemove', function() { g_frontArmAngle = this.value; renderAllShapes(); }); 
+    document.getElementById("pawSlide").addEventListener('mousemove', function() { g_pawAngle = this.value; renderAllShapes(); }); 
 
     // Camera Angle Slider Events
     document.getElementById("angleslide").addEventListener('mousemove', function() { g_globalAngle = this.value; renderAllShapes(); });
@@ -157,12 +164,16 @@ function tick() {
 }
 
 function updateAnimationAngles() {
-    if (g_yellowAnimation) {
-      g_yellowAngle = (15*Math.sin(3*g_seconds));
+    if (g_bodyAnimation) {
+      g_bodyAngle = (5*Math.sin(7*g_seconds));
+    }
+  
+    if (g_frontArmAnimation) {
+      g_frontArmAngle = (3*Math.sin(5*g_seconds));
     }
 
-    if (g_magentaAnimation) {
-      g_magentaAngle = (45*Math.sin(3*g_seconds));
+    if (g_pawAnimation) {
+      g_pawAngle = (10*Math.sin(5*g_seconds));
     }
 }
 
@@ -175,45 +186,68 @@ function renderAllShapes() {
 
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
+
+    // Colors
+    let black = [0.29, 0.122, 0.2, 1, 1];
+    let underside = [0.69, 0.51, 0.592, 1];
+
     // Draw body cube
     let body = new Cube();
-    body.color = [1.0, 0.0, 0.0, 1.0];
-    body.matrix.setTranslate(-.25, -.75, 0.0);
-    body.matrix.rotate(-5, 1, 0, 0);
-    body.matrix.scale(0.5, .3, .5);
+    body.color = black;
+    body.matrix.setTranslate(-0.2, -0.2, 0.0);
+
+    body.matrix.rotate(-g_bodyAngle, 0, 1, 0);
+    let bodyCoordinatesMat = new Matrix4(body.matrix);
+    body.matrix.scale(0.7, 0.5, 0.5);
     body.render();
 
-    // Draw left cube
-    let leftArm = new Cube();
-    leftArm.color = [1, 1, 0, 1];
-    leftArm.matrix.setTranslate(0, -.5, 0.0);
-    leftArm.matrix.rotate(-5, 1, 0, 0);
+    // Draw front right
+    let frontRightArm = new Cube();
+    frontRightArm.color = black;
 
-    leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
+    frontRightArm.matrix = bodyCoordinatesMat;
+    frontRightArm.matrix.translate(0.01, -0.3, 0);
+    let armCoordinatesMat = new Matrix4(frontRightArm.matrix);
+    frontRightArm.matrix.scale(0.2, 0.4, 0.2);
 
-    let yellowCoordinatesMat = new Matrix4(leftArm.matrix);
-    leftArm.matrix.scale(0.25, .7, .5);
-    leftArm.matrix.translate(-.5, 0, 0);
-    leftArm.render();
+    frontRightArm.matrix.rotate(-g_frontArmAngle, 0, 0, 1);
+    let armDimensionsMat = new Matrix4(frontRightArm.matrix);
+    frontRightArm.render();
 
-    // test box
-    let box = new Cube();
-    // box.color = [1, 0, 1, 1];
-    box.matrix = yellowCoordinatesMat;
-    box.matrix.translate(0, 0.65, 0);
+    // Draw front left
+    let frontLeftArm = new Cube();
+    frontLeftArm.color = black;
 
-    box.matrix.rotate(-g_magentaAngle, 0, 0, 1);
+    frontLeftArm.matrix = armDimensionsMat;
+    frontLeftArm.matrix.translate(0, 0, 1.5);
+    frontLeftArm.matrix.rotate(-g_frontArmAngle, 0, 0, 1);
+    frontLeftArm.render();
 
-    box.matrix.scale(.3, .3, .3);
-    box.matrix.translate(-.5, 0, -0.001);
-    box.render([1, 0, 1, 1]);
+    // Draw front right paw
+    let frontRightPaw = new Cube();
+    frontRightPaw.matrix = armCoordinatesMat;
+
+    frontRightPaw.matrix.translate(-0.05, 0.00, 0.001);
+
+    frontRightPaw.matrix.rotate(-g_pawAngle, 0, 0, 1);
+
+    frontRightPaw.matrix.scale(.2, .1, .2);
+    let pawDimensionsMat = new Matrix4(frontRightPaw.matrix);
+    frontRightPaw.render(underside);
+
+    // Draw front left paw
+    let frontLeftPaw = new Cube();
+
+    frontLeftPaw.matrix = pawDimensionsMat;
+    frontLeftPaw.matrix.translate(0, 0, 1.4899);
+    frontLeftPaw.matrix.rotate(-g_pawAngle, 0, 0, 1);
+    frontLeftPaw.render(underside);
 
     // test pyramid
-    let pyramid = new Pyramid();
-    pyramid.color = [1, 1, 1, 1];
-    pyramid.matrix.setScale(0.3, .65, .5);
-    pyramid.render();
+    // let pyramid = new Pyramid();
+    // pyramid.color = [1, 1, 1, 1];
+    // pyramid.matrix.setScale(0.5, .3, .15);
+    // pyramid.render();
 
     let duration = performance.now() - startTime;
     sendTextToHTML(" ms: " + Math.floor(duration) + " fps: " + Math.floor(10000/duration), "fps");
