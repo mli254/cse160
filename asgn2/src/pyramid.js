@@ -1,12 +1,11 @@
-class Cube {
+class Pyramid {
     constructor() {
-        this.type = "cube";
+        this.type = "pyramid";
         this.color = [1.0, 1.0, 1.0, 1.0];
         this.matrix = new Matrix4();
     }
 
-    render(color = this.color) {
-        this.color = color;
+    render() {
         var rgba = this.color;
 
         // Pass the color of a point to u_FragColor variable
@@ -30,6 +29,9 @@ class Cube {
         drawTriangle3D([0, 0, 0,  1, 0, 1,  1, 0, 0]);
         drawTriangle3D([0, 0, 0,  0, 0, 1,  1, 0, 1]);
 
+        // Front of pyramid
+        drawTriangle3D([0, 1, 0,  0.5, 1.5, 0.5,  1, 1, 0]);
+
         // Fake lighting
         gl.uniform4f(u_FragColor, rgba[0]*.8, rgba[1]*.8, rgba[2]*.8, rgba[3]);
         
@@ -41,11 +43,20 @@ class Cube {
         drawTriangle3D([1, 0, 0,  1, 1, 1,  1, 0, 1]);
         drawTriangle3D([1, 0, 0,  1, 1, 0,  1, 1, 1]);
 
+        // Left of pyramid
+        drawTriangle3D([0, 1, 0,  0.5, 1.5, 0.5,  0, 1, 1]);
+
+        // Right of pyramid
+        drawTriangle3D([1, 1, 0,  0.5, 1.5, 0.5,  1, 1, 1]);
+
         // Fake lighting
         gl.uniform4f(u_FragColor, rgba[0]*.7, rgba[1]*.7, rgba[2]*.7, rgba[3]);
 
         // Draw back side of the cube
         drawTriangle3D([0, 0, 1,  1, 1, 1,  1, 0, 1]);
         drawTriangle3D([0, 0, 1,  0, 1, 1,  1, 1, 1]);
+
+        // Back of pyramid
+        drawTriangle3D([1, 1, 1,  0.5, 1.5, 0.5,  0, 1, 1]);
     }
 }

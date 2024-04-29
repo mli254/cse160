@@ -21,7 +21,6 @@ let canvas;
 let gl;
 let a_Position;
 let u_FragColor;
-let u_Size;
 let u_ModelMatrix;
 let u_GlobalRotateMatrix;
 
@@ -36,6 +35,21 @@ function setupWebGL() {
         return;
     }
     gl.enable(gl.DEPTH_TEST);
+}
+
+// code from: https://people.ucsc.edu/~adion/Andre_Dion_Assignment_2/asg2.html
+function setupGLBuffer() {
+    // Create a buffer object
+    vertexBuffer = gl.createBuffer();
+    if (!vertexBuffer) {
+      console.log('Failed to create the buffer object');
+      return -1;
+    }
+
+    // Bind the buffer object to target
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    // Assign the buffer object to a_Position variable
+    gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
 }
 
 function connectVariablesToGLSL() {
@@ -74,25 +88,23 @@ function connectVariablesToGLSL() {
     }
 
     // Set an initial value for this matrix to identify
-    var identityM = new Matrix4();
+    let identityM = new Matrix4();
     gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
 }
 
-// Constants
-const POINT = 0;
-const TRIANGLE = 1;
-const CIRCLE = 2;
-
 // Globals Related to UI
 let g_selectedColor = [1.0, 1.0, 1.0, 1.0];
-let g_selectedSize = 5;
-let g_selectedType = POINT;
-let g_selectedSegmentNumber = 5;
 let g_globalAngle = 0;
+let g_globalPitch = 0;
+
 let g_yellowAngle = 0;
 let g_magentaAngle = 0;
 let g_yellowAnimation = false;
 let g_magentaAnimation = false;
+let g_animationEvent = false;
+
+let g_prev_x = 0;
+let g_prev_y = 0;
 
 function addActionsForHTMLUI() {
     // Button Events
@@ -107,25 +119,27 @@ function addActionsForHTMLUI() {
 
     // Camera Angle Slider Events
     document.getElementById("angleslide").addEventListener('mousemove', function() { g_globalAngle = this.value; renderAllShapes(); });
-}
+    document.getElementById("pitchslide").addEventListener('mousemove', function() { g_globalPitch = this.value; renderAllShapes(); });
+  }
 
 function main() {
     setupWebGL();
+    setupGLBuffer();
     connectVariablesToGLSL();
     addActionsForHTMLUI();
 
     // Register function (event handler) tobe called on a mouse press
-    // canvas.onmousedown = click;
-    // canvas.onmousemove = function(ev) { if (ev.buttons==1) {click(ev)} }
+    canvas.onmousedown = function(ev) { [g_prev_x, g_prev_y] = convertCoordinatesEventToGL(ev); click(ev); };
+    canvas.onmousemove = function(ev) { if (ev.buttons==1) {click(ev)} }
+
     // Specify the color for clearing <canvas>
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-    // renderAllShapes();
     requestAnimationFrame(tick);
 }
 
-var g_startTime = performance.now()/1000.0;
-var g_seconds = performance.now()/1000.0 - g_startTime;
+let g_startTime = performance.now()/1000.0;
+let g_seconds = performance.now()/1000.0 - g_startTime;
 
 // Called by browser repeatedly whenever its time
 function tick() {
@@ -144,7 +158,7 @@ function tick() {
 
 function updateAnimationAngles() {
     if (g_yellowAnimation) {
-      g_yellowAngle = (45*Math.sin(g_seconds));
+      g_yellowAngle = (15*Math.sin(3*g_seconds));
     }
 
     if (g_magentaAnimation) {
@@ -153,18 +167,17 @@ function updateAnimationAngles() {
 }
 
 function renderAllShapes() {
-    var startTime = performance.now();
+    let startTime = performance.now();
 
     // Pass the matrix to u_ModelMatrix attribute
-    var globalRotMat = new Matrix4().rotate(g_globalAngle, 0, 1, 0);
+    let globalRotMat = new Matrix4().rotate(g_globalAngle, 0, 1, 0).rotate(g_globalPitch, 1, 0, 0);
     gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
 
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // gl.clear(gl.COLOR_BUFFER_BIT);
     
     // Draw body cube
-    var body = new Cube();
+    let body = new Cube();
     body.color = [1.0, 0.0, 0.0, 1.0];
     body.matrix.setTranslate(-.25, -.75, 0.0);
     body.matrix.rotate(-5, 1, 0, 0);
@@ -172,38 +185,42 @@ function renderAllShapes() {
     body.render();
 
     // Draw left cube
-    var leftArm = new Cube();
+    let leftArm = new Cube();
     leftArm.color = [1, 1, 0, 1];
     leftArm.matrix.setTranslate(0, -.5, 0.0);
     leftArm.matrix.rotate(-5, 1, 0, 0);
 
     leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
-    // if (g_yellowAnimation) {
-    //   leftArm.matrix.rotate(45*Math.sin(g_seconds), 0, 0, 1);
-    // } else {
-    //   leftArm.matrix.rotate(-g_yellowAngle, 0, 0, 1);
-    // }
-    var yellowCoordinatesMat = new Matrix4(leftArm.matrix);
+
+    let yellowCoordinatesMat = new Matrix4(leftArm.matrix);
     leftArm.matrix.scale(0.25, .7, .5);
     leftArm.matrix.translate(-.5, 0, 0);
     leftArm.render();
 
     // test box
-    var box = new Cube();
-    box.color = [1, 0, 1, 1];
+    let box = new Cube();
+    // box.color = [1, 0, 1, 1];
     box.matrix = yellowCoordinatesMat;
     box.matrix.translate(0, 0.65, 0);
+
     box.matrix.rotate(-g_magentaAngle, 0, 0, 1);
+
     box.matrix.scale(.3, .3, .3);
     box.matrix.translate(-.5, 0, -0.001);
-    box.render();
+    box.render([1, 0, 1, 1]);
 
-    var duration = performance.now() - startTime;
+    // test pyramid
+    let pyramid = new Pyramid();
+    pyramid.color = [1, 1, 1, 1];
+    pyramid.matrix.setScale(0.3, .65, .5);
+    pyramid.render();
+
+    let duration = performance.now() - startTime;
     sendTextToHTML(" ms: " + Math.floor(duration) + " fps: " + Math.floor(10000/duration), "fps");
 }
 
 function sendTextToHTML(text, htmlID) {
-    var htmlEL = document.getElementById(htmlID);
+    let htmlEL = document.getElementById(htmlID);
     if (!htmlEL) {
       console.log("Failed to get " + htmlID + " from HTML");
       return;
@@ -211,39 +228,44 @@ function sendTextToHTML(text, htmlID) {
     htmlEL.innerHTML = text;
 }
 
-// var g_shapesList = [];
+// from https://people.ucsc.edu/~adion/Andre_Dion_Assignment_2/asg2.html
+function click(ev) {
+    if (ev.shiftKey && !g_animationEvent) {
+      g_animationEvent = true;
+      return;
+    } else if (ev.shiftKey && g_animationEvent) {
+      g_animationEvent = false;
+      return;
+    }
 
-// function click(ev) {
-//   let [x, y] = convertCoordinatesEventToGL(ev);
+    let [cur_x, cur_y] = convertCoordinatesEventToGL(ev);
+    
+    let change_x = cur_x - g_prev_x;
+    g_globalAngle += 180 * change_x; 
+    g_globalAngle %= 360; 
+    if (g_globalAngle <= 0) {
+      g_globalAngle += 360;
+    }
 
-//   // Create and store the new shape
-//   let point;
-//   if (g_selectedType==POINT) {
-//     point = new Point();
-//   } else if (g_selectedType==TRIANGLE) {
-//     point = new Triangle();
-//   } else if (g_selectedType==CIRCLE) {
-//     point = new Circle();
-//     point.segments = g_selectedSegmentNumber;
-//   }
-//   point.position = [x, y];
-//   point.color = g_selectedColor.slice();
-//   point.size = g_selectedSize;
+    let change_y = cur_y - g_prev_y;
+    g_globalPitch += 180 * change_y; 
+    g_globalPitch %= 360; 
+    if (g_globalPitch <= 0) {
+      g_globalPitch += 360;
+    }
 
-//   g_shapesList.push(point);
+    g_prev_x = cur_x; 
+    g_prev_y = cur_y;
+}
 
-//   // Draw every shape that is supposed to be on the Canvas
-//   renderAllShapes();
-// }
+// Extract the event click and convert it to WebGL coordinates
+function convertCoordinatesEventToGL(ev) {
+    var x = ev.clientX; // x coordinate of a mouse pointer
+    var y = ev.clientY; // y coordinate of a mouse pointer
+    var rect = ev.target.getBoundingClientRect();
 
-// // Extract the event click and convert it to WebGL coordinates
-// function convertCoordinatesEventToGL(ev) {
-//     var x = ev.clientX; // x coordinate of a mouse pointer
-//     var y = ev.clientY; // y coordinate of a mouse pointer
-//     var rect = ev.target.getBoundingClientRect();
+    x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
+    y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
 
-//     x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
-//     y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
-
-//     return([x, y]);
-// }
+    return([x, y]);
+}
