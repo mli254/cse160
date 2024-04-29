@@ -28,7 +28,24 @@ class Cube {
 
         // Draw top of the cube
         drawTriangle3D([0, 1, 0,  0, 1, 1,  1, 1, 1]);
-        drawTriangle3D([0, 1, 0,  1, 1, 1,  1, 1, 0])
+        drawTriangle3D([0, 1, 0,  1, 1, 1,  1, 1, 0]);
+
+        // Draw bottom of the cube
+        drawTriangle3D([0, 0, 0,  1, 0, 1,  1, 0, 0]);
+        drawTriangle3D([0, 0, 0,  0, 0, 1,  1, 0, 1]);
+        
+        // Draw left side of the cube
+        drawTriangle3D([0, 0, 1,  0, 1, 0,  0, 0, 0]);
+        drawTriangle3D([0, 0, 1,  0, 1, 1,  0, 1, 0]);
+
+        // Draw right side of the cube
+        drawTriangle3D([1, 0, 0,  1, 1, 1,  1, 0, 1]);
+        drawTriangle3D([1, 0, 0,  1, 1, 0,  1, 1, 1]);
+
+        // Draw back side of the cube
+        drawTriangle3D([0, 0, 1,  1, 1, 1,  1, 0, 1]);
+        drawTriangle3D([0, 0, 1,  0, 1, 1,  1, 1, 1]);
+
         // Other sides of the cube: top, bottom, left, right, back
 
     }
