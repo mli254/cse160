@@ -191,55 +191,96 @@ function renderAllShapes() {
     let black = [0.29, 0.122, 0.2, 1, 1];
     let underside = [0.69, 0.51, 0.592, 1];
 
+    // Joints
+    let bodyCoordinatesMat;
+    let headCoordinatesMat;
+    let armCoordinatesMat;
+    let armDimensionsMat;
+
     // Draw body cube
     let body = new Cube();
     body.color = black;
     body.matrix.setTranslate(-0.2, -0.2, 0.0);
-
+    // Rotate the body from side to side
     body.matrix.rotate(-g_bodyAngle, 0, 1, 0);
-    let bodyCoordinatesMat = new Matrix4(body.matrix);
+    // Save coordinates to allow child objects
+    bodyCoordinatesMat = new Matrix4(body.matrix);
+    // Scale body
     body.matrix.scale(0.7, 0.5, 0.5);
     body.render();
 
+    // == HEAD ====================
+    // Draw the neck cube
+    let neck = new Cube();
+    neck.color = black;
+    // Attach the neck to the main body
+    neck.matrix = new Matrix4(bodyCoordinatesMat);
+    neck.matrix.translate(-0.2, 0.15, 0);
+    // Rotate
+
+    neck.matrix.scale(0.4, 0.4, 0.5);
+    neck.render();
+
+    // Draw the head cube
+    let head = new Cube();
+    head.color = black;
+    // Attach the head to the main body
+    head.matrix = new Matrix4(bodyCoordinatesMat);
+    head.matrix.translate(-0.4, 0.3, 0.05);
+    // Rotate the head
+
+    // Save coordinates to allow child objects
+    headCoordinatesMat = new Matrix4(head.matrix);
+    head.matrix.scale(0.35, 0.3, 0.4);
+    head.render();
+
+    // Draw the face cube
+    
+
+    // == LEGS ==============================
     // Draw front right
     let frontRightArm = new Cube();
     frontRightArm.color = black;
-
+    // Attach front right arm to the main body
     frontRightArm.matrix = bodyCoordinatesMat;
     frontRightArm.matrix.translate(0.01, -0.3, 0);
-    let armCoordinatesMat = new Matrix4(frontRightArm.matrix);
+    // Save coordinates to allow child objects
+    armCoordinatesMat = new Matrix4(frontRightArm.matrix);
     frontRightArm.matrix.scale(0.2, 0.4, 0.2);
-
+    // Rotate the arm up and down
     frontRightArm.matrix.rotate(-g_frontArmAngle, 0, 0, 1);
-    let armDimensionsMat = new Matrix4(frontRightArm.matrix);
+    // Save the dimensions of the arm in order to duplicate it
+    armDimensionsMat = new Matrix4(frontRightArm.matrix);
     frontRightArm.render();
 
     // Draw front left
     let frontLeftArm = new Cube();
     frontLeftArm.color = black;
-
+    // Copy the dimensions of the arm
     frontLeftArm.matrix = armDimensionsMat;
     frontLeftArm.matrix.translate(0, 0, 1.5);
+    // Rotate the arm up and down
     frontLeftArm.matrix.rotate(-g_frontArmAngle, 0, 0, 1);
     frontLeftArm.render();
 
     // Draw front right paw
     let frontRightPaw = new Cube();
+    // Attach the paw to the arm
     frontRightPaw.matrix = armCoordinatesMat;
-
     frontRightPaw.matrix.translate(-0.05, 0.00, 0.001);
-
+    // Rotate the paw up and down
     frontRightPaw.matrix.rotate(-g_pawAngle, 0, 0, 1);
-
     frontRightPaw.matrix.scale(.2, .1, .2);
+    // Save the dimensions of the paw to be copied later
     let pawDimensionsMat = new Matrix4(frontRightPaw.matrix);
     frontRightPaw.render(underside);
 
     // Draw front left paw
     let frontLeftPaw = new Cube();
-
+    // Copy dimensions of the paw
     frontLeftPaw.matrix = pawDimensionsMat;
     frontLeftPaw.matrix.translate(0, 0, 1.4899);
+    // Rotate the paw up and down
     frontLeftPaw.matrix.rotate(-g_pawAngle, 0, 0, 1);
     frontLeftPaw.render(underside);
 
