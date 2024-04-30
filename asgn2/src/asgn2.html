@@ -13,22 +13,27 @@
 
     </p>
     <p>
-        <button type="button" id="aniBodyOffButton">Body Animation Off</button>
-        <button type="button" id="aniBodyOnButton">Body Animation On</button>
+        Idle Animation
+        <button type="button" id="aniBodyOffButton">Off</button>
+        <button type="button" id="aniBodyOnButton">On</button>
         <br>
-        <button type="button" id="aniFrontArmOffButton">Front Arms Animation Off</button>
-        <button type="button" id="aniFrontArmOnButton">Front Arms Animation On</button>
-        <br>
-        <button type="button" id="aniPawOffButton">Paw Animation Off</button>
-        <button type="button" id="aniPawOnButton">Paw Animation On</button>
+        Event Animation (shift+click to activate!)
     </p>
     <p>
         Body Angle <input type="range" min="-45" max="45" value="0" class="slider" id="bodyAngleSlide">
-        Yellow <input type="range" min="-45" max="45" value="0" class="slider" id="frontArmSlide">
-        Magenta <input type="range" min="-45" max="45" value="0" class="slider" id="pawSlide">
+        Right Arms Angle <input type="range" min="-10" max="5" value="0" class="slider" id="rightArmSlide">
+        Left Arms Angle <input type="range" min="-10" max="5" value="0" class="slider" id="leftArmSlide">
+        Right Paws Angle <input type="range" min="-15" max="5" value="0" class="slider" id="rightPawSlide">
+        Left Paws Angle <input type="range" min="-15" max="5" value="0" class="slider" id="leftPawSlide">
         <br>
         Camera X Angle <input type="range" min="-180" max="180" value="-45" class="slider" id="angleslide">
         Camera Y Angle <input type="range" min="-180" max="180" value="0" class="slider" id="pitchslide"> 
+      </p>
+    <p>
+        Grader's Notes:
+        The third-level joint is the paw, since it goes body -> arm -> paw, with the paw having a slight rotation as well.
+        <br>
+        Additionally, the non-cube primitive is the pyramid structure that I used for the ears. 
       </p>
     <p>
         Madison Li

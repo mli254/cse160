@@ -20,7 +20,7 @@ class Cube {
         drawTriangle3D([0.0, 0.0, 0.0,  0.0, 1.0, 0.0,  1.0, 1.0, 0.0]);
 
         // Fake lighting
-        gl.uniform4f(u_FragColor, rgba[0]*.9, rgba[1]*.9, rgba[2]*.9, rgba[3]);
+        gl.uniform4f(u_FragColor, rgba[0], rgba[1]*.8, rgba[2]*.9, rgba[3]);
 
         // Draw top of the cube
         drawTriangle3D([0, 1, 0,  0, 1, 1,  1, 1, 1]);
@@ -31,7 +31,7 @@ class Cube {
         drawTriangle3D([0, 0, 0,  0, 0, 1,  1, 0, 1]);
 
         // Fake lighting
-        gl.uniform4f(u_FragColor, rgba[0]*.8, rgba[1]*.8, rgba[2]*.8, rgba[3]);
+        gl.uniform4f(u_FragColor, rgba[0]*.9, rgba[1]*.7, rgba[2]*.8, rgba[3]);
         
         // Draw left side of the cube
         drawTriangle3D([0, 0, 1,  0, 1, 0,  0, 0, 0]);
@@ -42,7 +42,7 @@ class Cube {
         drawTriangle3D([1, 0, 0,  1, 1, 0,  1, 1, 1]);
 
         // Fake lighting
-        gl.uniform4f(u_FragColor, rgba[0]*.7, rgba[1]*.7, rgba[2]*.7, rgba[3]);
+        gl.uniform4f(u_FragColor, rgba[0]*.8, rgba[1]*.6, rgba[2]*.7, rgba[3]);
 
         // Draw back side of the cube
         drawTriangle3D([0, 0, 1,  1, 1, 1,  1, 0, 1]);
