@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Blocky Animal</title>
+  </head>
+
+  <body onload="main()">
+    <canvas id="webgl" width="400" height="400">
+    Please use a browser that supports "canvas"
+    </canvas>
+    <p id="fps">
+
+    </p>
+    <p>
+        Idle Animation
+        <button type="button" id="aniBodyOffButton">Off</button>
+        <button type="button" id="aniBodyOnButton">On</button>
+        <br>
+        Event Animation (shift+click to activate!)
+    </p>
+    <p>
+        Body Angle <input type="range" min="-45" max="45" value="0" class="slider" id="bodyAngleSlide">
+        Right Arms Angle <input type="range" min="-10" max="5" value="0" class="slider" id="rightArmSlide">
+        Left Arms Angle <input type="range" min="-10" max="5" value="0" class="slider" id="leftArmSlide">
+        Right Paws Angle <input type="range" min="-15" max="5" value="0" class="slider" id="rightPawSlide">
+        Left Paws Angle <input type="range" min="-15" max="5" value="0" class="slider" id="leftPawSlide">
+        <br>
+        Camera X Angle <input type="range" min="-180" max="180" value="-45" class="slider" id="angleslide">
+        Camera Y Angle <input type="range" min="-180" max="180" value="0" class="slider" id="pitchslide"> 
+      </p>
+    <p>
+        Grader's Notes:
+      </p>
+    <p>
+        Madison Li
+        <br>
+        mli254@ucsc.edu
+        </p>
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix-cse160.js"></script>
+    <script src="./triangle.js"></script>
+    <script src="./cube.js"></script>
+    <script src="./pyramid.js"></script>
+    <script src="./asgn3.js"></script>
+  </body>
+</html>
