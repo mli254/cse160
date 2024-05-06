@@ -290,13 +290,9 @@ function updateAnimationAngles() {
     }
 }
 
-// let g_eye = new Vector3();
-// g_eye.elements=[0, 0, 3];
 let g_eye = new Vector3([0,0,3]);
 let g_at = new Vector3([0, 0, -100]);
-// g_at.elements = [0, 0, -100];
 let g_up = new Vector3([0, 1, 0]);
-// g_up.elements = [0, 1, 0];
 
 function renderAllShapes() {
     let startTime = performance.now();
@@ -588,8 +584,9 @@ function moveForward() {
   copy_at.set(g_at);
 
   // d = at - eye
-  d = new Vector3();
-  d.set(copy_at.sub(g_eye));
+  // d = new Vector3();
+  // d.set(copy_at.sub(g_eye));
+  let d = copy_at.sub(g_eye);
   d.normalize();
 
   g_eye.add(d);
@@ -602,8 +599,9 @@ function moveBackward() {
   copy_at.set(g_at);
 
   // d = at - eye
-  d = new Vector3();
-  d.set(copy_at.sub(g_eye));
+  // d = new Vector3();
+  // d.set(copy_at.sub(g_eye));
+  let d = copy_at.sub(g_eye);
   d.normalize();
 
   g_eye.sub(d);
@@ -616,10 +614,8 @@ function moveLeft() {
   copy_at.set(g_at);
 
   // d = at - eye
-  d = new Vector3();
-  d.set(copy_at.sub(g_eye));
-  left = new Vector3();
-  left.set(Vector3.cross(d, g_up));
+  let d = copy_at.sub(g_eye);
+  let left = Vector3.cross(d, g_up);
   left.normalize();
 
   g_eye.sub(left);
@@ -632,12 +628,10 @@ function moveRight() {
   copy_at.set(g_at);
 
   // d = at - eye
-  d = new Vector3();
-  d.set(copy_at.sub(g_eye));
+  d = copy_at.sub(g_eye);
   d.mul(-1);
   
-  right = new Vector3();
-  right.set(Vector3.cross(d, g_up));
+  right = Vector3.cross(d, g_up);
   right.normalize();
 
   g_eye.sub(right);
