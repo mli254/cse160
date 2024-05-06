@@ -290,9 +290,10 @@ function updateAnimationAngles() {
     }
 }
 
-let g_eye = new Vector3([0,0,3]);
-let g_at = new Vector3([0, 0, -100]);
-let g_up = new Vector3([0, 1, 0]);
+// let g_eye = new Vector3([0,0,3]);
+// let g_at = new Vector3([0, 0, -100]);
+// let g_up = new Vector3([0, 1, 0]);
+let g_camera = new Camera();
 
 function renderAllShapes() {
     let startTime = performance.now();
@@ -304,7 +305,11 @@ function renderAllShapes() {
 
     // Pass the view matrix to u_ViewMatrix
     let viewMat = new Matrix4();
-    viewMat.setLookAt(g_eye.elements[0],g_eye.elements[1],g_eye.elements[2], g_at.elements[0],g_at.elements[1],g_at.elements[2], g_up.elements[0],g_up.elements[1],g_up.elements[2]); // eye, at , up
+    viewMat.setLookAt(
+      g_camera.eye.elements[0],g_camera.eye.elements[1],g_camera.eye.elements[2], 
+      g_camera.at.elements[0],g_camera.at.elements[1],g_camera.at.elements[2], 
+      g_camera.up.elements[0],g_camera.up.elements[1],g_camera.up.elements[2]); 
+      // eye, at , up
     gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
 
     // Pass the matrix to u_ModelMatrix attribute
@@ -565,75 +570,15 @@ function convertCoordinatesEventToGL(ev) {
 
 function keydown(ev) {
   if (ev.keyCode==87 || ev.keyCode==38) {
-    moveForward();
+    g_camera.moveForward();
   } else if (ev.keyCode==65 || ev.keyCode==37) {
-    moveLeft();
+    g_camera.moveLeft();
   } else if (ev.keyCode==68 || ev.keyCode==39) {
-    moveRight();
+    g_camera.moveRight();
   } else if (ev.keyCode==83 || ev.keyCode==40) {
-    moveBackward();
+    g_camera.moveBackward();
   }
 
   renderAllShapes();
   // console.log(ev.keyCode);
-}
-
-function moveForward() {
-  // Make a copy of g_at for calculating d
-  copy_at = new Vector3();
-  copy_at.set(g_at);
-
-  // d = at - eye
-  // d = new Vector3();
-  // d.set(copy_at.sub(g_eye));
-  let d = copy_at.sub(g_eye);
-  d.normalize();
-
-  g_eye.add(d);
-  g_at.add(d);
-}
-
-function moveBackward() {
-  // Make a copy of g_at for calculating d
-  copy_at = new Vector3();
-  copy_at.set(g_at);
-
-  // d = at - eye
-  // d = new Vector3();
-  // d.set(copy_at.sub(g_eye));
-  let d = copy_at.sub(g_eye);
-  d.normalize();
-
-  g_eye.sub(d);
-  g_at.sub(d);
-}
-
-function moveLeft() {
-  // Make a copy of g_at for calculating d
-  copy_at = new Vector3();
-  copy_at.set(g_at);
-
-  // d = at - eye
-  let d = copy_at.sub(g_eye);
-  let left = Vector3.cross(d, g_up);
-  left.normalize();
-
-  g_eye.sub(left);
-  g_at.sub(left);
-}
-
-function moveRight() {
-  // Make a copy of g_at for calculating d
-  copy_at = new Vector3();
-  copy_at.set(g_at);
-
-  // d = at - eye
-  d = copy_at.sub(g_eye);
-  d.mul(-1);
-  
-  right = Vector3.cross(d, g_up);
-  right.normalize();
-
-  g_eye.sub(right);
-  g_at.sub(right);
 }

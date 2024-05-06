@@ -1,70 +1,62 @@
 class Camera {
     constructor() {
         this.eye = new Vector3([0,0,3]);
-        this.eye = new Vector3([0,0,-100]);
+        this.at = new Vector3([0,0,-100]);
         this.up = new Vector3([0,1,0]);
     }
 
     moveForward() {
-        
-        // Make a copy of g_at for calculating d
-        copy_at = new Vector3();
-        copy_at.set(g_at);
-    
-        // d = at - eye
-        d = new Vector3();
-        d.set(copy_at.sub(g_eye));
+        // Make a copy of this.at for calculating d
+        let copy_at = new Vector3();
+        copy_at.set(this.at);
+      
+        let d = copy_at.sub(this.eye);
         d.normalize();
-    
-        g_eye.add(d);
-        g_at.add(d);
+      
+        this.eye.add(d);
+        this.at.add(d);
     }
-    
+      
     moveBackward() {
-        // Make a copy of g_at for calculating d
-        copy_at = new Vector3();
-        copy_at.set(g_at);
-    
+        // Make a copy of this.at for calculating d
+        let copy_at = new Vector3();
+        copy_at.set(this.at);
+
         // d = at - eye
-        d = new Vector3();
-        d.set(copy_at.sub(g_eye));
+        let d = copy_at.sub(this.eye);
         d.normalize();
-    
-        g_eye.sub(d);
-        g_at.sub(d);
+      
+        this.eye.sub(d);
+        this.at.sub(d);
     }
-    
+      
     moveLeft() {
-        // Make a copy of g_at for calculating d
-        copy_at = new Vector3();
-        copy_at.set(g_at);
-    
+        // Make a copy of this.at for calculating d
+        let copy_at = new Vector3();
+        copy_at.set(this.at);
+      
         // d = at - eye
-        d = new Vector3();
-        d.set(copy_at.sub(g_eye));
-        left = new Vector3();
-        left.set(Vector3.cross(d, g_up));
+        let d = copy_at.sub(this.eye);
+        let left = Vector3.cross(d, this.up);
         left.normalize();
-    
-        g_eye.sub(left);
-        g_at.sub(left);
+      
+        this.eye.sub(left);
+        this.at.sub(left);
     }
-    
+      
     moveRight() {
-        // Make a copy of g_at for calculating d
-        copy_at = new Vector3();
-        copy_at.set(g_at);
-    
+        // Make a copy of this.at for calculating d
+        let copy_at = new Vector3();
+        copy_at.set(this.at);
+      
         // d = at - eye
-        d = new Vector3();
-        d.set(copy_at.sub(g_eye));
+        let d = copy_at.sub(this.eye);
         d.mul(-1);
         
-        right = new Vector3();
-        right.set(Vector3.cross(d, g_up));
+        let right = Vector3.cross(d, this.up);
         right.normalize();
-    
-        g_eye.sub(right);
-        g_at.sub(right);
+      
+        this.eye.sub(right);
+        this.at.sub(right);
     }
 }
