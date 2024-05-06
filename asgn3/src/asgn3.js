@@ -205,7 +205,7 @@ function main() {
     // Register function (event handler) tobe called on a mouse press
     canvas.onmousedown = function(ev) { [g_prev_x, g_prev_y] = convertCoordinatesEventToGL(ev); click(ev); };
     canvas.onmousemove = function(ev) { if (ev.buttons==1) {click(ev)} }
-
+    document.onkeydown = keydown;
     // Specify the color for clearing <canvas>
     gl.clearColor(0.424, 0.49, 0.235, 1.0);
 
@@ -290,17 +290,25 @@ function updateAnimationAngles() {
     }
 }
 
+// let g_eye = new Vector3();
+// g_eye.elements=[0, 0, 3];
+let g_eye = new Vector3([0,0,3]);
+let g_at = new Vector3([0, 0, -100]);
+// g_at.elements = [0, 0, -100];
+let g_up = new Vector3([0, 1, 0]);
+// g_up.elements = [0, 1, 0];
+
 function renderAllShapes() {
     let startTime = performance.now();
 
     // Pass the projection matrix to u_ProjectionMatrix
     let projMat = new Matrix4();
-    projMat.setPerspective(60, canvas.width/canvas.height, .1, 100);
+    projMat.setPerspective(50, 1*canvas.width/canvas.height, 1, 100);
     gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
 
     // Pass the view matrix to u_ViewMatrix
     let viewMat = new Matrix4();
-    viewMat.setLookAt(0,0,3,  0,0,-100,  0,1,0); // eye, at , up
+    viewMat.setLookAt(g_eye.elements[0],g_eye.elements[1],g_eye.elements[2], g_at.elements[0],g_at.elements[1],g_at.elements[2], g_up.elements[0],g_up.elements[1],g_up.elements[2]); // eye, at , up
     gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
 
     // Pass the matrix to u_ModelMatrix attribute
@@ -557,4 +565,81 @@ function convertCoordinatesEventToGL(ev) {
     y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
 
     return([x, y]);
+}
+
+function keydown(ev) {
+  if (ev.keyCode==87 || ev.keyCode==38) {
+    moveForward();
+  } else if (ev.keyCode==65 || ev.keyCode==37) {
+    moveLeft();
+  } else if (ev.keyCode==68 || ev.keyCode==39) {
+    moveRight();
+  } else if (ev.keyCode==83 || ev.keyCode==40) {
+    moveBackward();
+  }
+
+  renderAllShapes();
+  // console.log(ev.keyCode);
+}
+
+function moveForward() {
+  // Make a copy of g_at for calculating d
+  copy_at = new Vector3();
+  copy_at.set(g_at);
+
+  // d = at - eye
+  d = new Vector3();
+  d.set(copy_at.sub(g_eye));
+  d.normalize();
+
+  g_eye.add(d);
+  g_at.add(d);
+}
+
+function moveBackward() {
+  // Make a copy of g_at for calculating d
+  copy_at = new Vector3();
+  copy_at.set(g_at);
+
+  // d = at - eye
+  d = new Vector3();
+  d.set(copy_at.sub(g_eye));
+  d.normalize();
+
+  g_eye.sub(d);
+  g_at.sub(d);
+}
+
+function moveLeft() {
+  // Make a copy of g_at for calculating d
+  copy_at = new Vector3();
+  copy_at.set(g_at);
+
+  // d = at - eye
+  d = new Vector3();
+  d.set(copy_at.sub(g_eye));
+  left = new Vector3();
+  left.set(Vector3.cross(d, g_up));
+  left.normalize();
+
+  g_eye.sub(left);
+  g_at.sub(left);
+}
+
+function moveRight() {
+  // Make a copy of g_at for calculating d
+  copy_at = new Vector3();
+  copy_at.set(g_at);
+
+  // d = at - eye
+  d = new Vector3();
+  d.set(copy_at.sub(g_eye));
+  d.mul(-1);
+  
+  right = new Vector3();
+  right.set(Vector3.cross(d, g_up));
+  right.normalize();
+
+  g_eye.sub(right);
+  g_at.sub(right);
 }
