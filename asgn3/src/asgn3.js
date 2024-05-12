@@ -335,17 +335,15 @@ function updateAnimationAngles() {
     }
 }
 
-// let g_eye = new Vector3([0,0,3]);
-// let g_at = new Vector3([0, 0, -100]);
-// let g_up = new Vector3([0, 1, 0]);
 let g_camera = new Camera();
+let g_fov = 60;
 
 function renderAllShapes() {
     let startTime = performance.now();
 
     // Pass the projection matrix to u_ProjectionMatrix
     let projMat = new Matrix4();
-    projMat.setPerspective(50, 1*canvas.width/canvas.height, 1, 100);
+    projMat.setPerspective(g_fov, 1*canvas.width/canvas.height, 1, 100);
     gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
 
     // Pass the view matrix to u_ViewMatrix
@@ -418,6 +416,7 @@ function renderAllShapes() {
     // Draw the neck cube
     let neck = new Cube();
     neck.color = black;
+    neck.textureNum = -2;
     // Attach the neck to the main body
     neck.matrix = new Matrix4(bodyCoordinatesMat);
     neck.matrix.translate(-0.2, 0, 0);
@@ -427,6 +426,7 @@ function renderAllShapes() {
     // Draw the head cube
     let head = new Cube();
     head.color = black;
+    head.textureNum = -2;
     // Attach the head to the main body
     head.matrix = new Matrix4(bodyCoordinatesMat);
     head.matrix.translate(-0.4, 0.3, 0.05);
@@ -438,6 +438,7 @@ function renderAllShapes() {
     // Draw the face cube
     let face = new Cube();
     face.color = underside;
+    face.textureNum = -2;
     // Attach the face to the head
     face.matrix = new Matrix4(headCoordinatesMat);
     face.matrix.translate(-0.05, 0.0001, 0.1);
@@ -449,6 +450,7 @@ function renderAllShapes() {
     // == FEATURES (EYES/NOSE) ==================
     let nose = new Cube();
     nose.color = features;
+    nose.textureNum = -2;
     // Attach nose to the face
     nose.matrix = new Matrix4(faceCoordinatesMat);
     nose.matrix.translate(-0.005, 0.10001, 0.08);
@@ -458,12 +460,14 @@ function renderAllShapes() {
 
     let leftEye = new Cube();
     leftEye.color = offwhite;
+    leftEye.textureNum = -2;
     leftEye.matrix = dotDimensionsMat;
     leftEye.matrix.translate(0.9, 0.7, 2.5);
     leftEye.render();
 
     let rightEye = new Cube();
     rightEye.color = offwhite;
+    rightEye.textureNum = -2;
     rightEye.matrix = new Matrix4(leftEye.matrix);
     rightEye.matrix.translate(0, 0, -5.2);
     rightEye.render();
@@ -639,6 +643,10 @@ function keydown(ev) {
     g_camera.moveRight();
   } else if (ev.keyCode==83 || ev.keyCode==40) {
     g_camera.moveBackward();
+  } else if (ev.keyCode==81) {
+    g_camera.turnLeft();
+  } else if (ev.keyCode==69) {
+    g_camera.turnRight();
   }
 
   renderAllShapes();

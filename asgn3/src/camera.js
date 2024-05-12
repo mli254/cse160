@@ -1,5 +1,6 @@
 class Camera {
     constructor() {
+        this.fov = 60;
         this.eye = new Vector3([0,0,3]);
         this.at = new Vector3([0,0,-100]);
         this.up = new Vector3([0,1,0]);
@@ -58,5 +59,41 @@ class Camera {
       
         this.eye.sub(right);
         this.at.sub(right);
+    }
+
+    turnRight() {
+        let copy_at = new Vector3();
+        copy_at.set(this.at);
+
+        // d = at - eye
+        let d = copy_at.sub(this.eye);
+        let r = Math.sqrt((d.elements[0]*d.elements[0]) + (d.elements[2]*d.elements[2]));
+
+        let pheta = Math.atan2(d.elements[2], d.elements[0]);
+        pheta += 5*(Math.PI/180);
+        let newX = r*Math.cos(pheta);
+        let newY = r*Math.sin(pheta);
+        d.elements[0] = newX;
+        d.elements[2] = newY;
+
+        this.at = d.add(this.eye);
+    }
+
+    turnLeft() {
+        let copy_at = new Vector3();
+        copy_at.set(this.at);
+
+        // d = at - eye
+        let d = copy_at.sub(this.eye);
+        let r = Math.sqrt((d.elements[0]*d.elements[0]) + (d.elements[2]*d.elements[2]));
+
+        let pheta = Math.atan2(d.elements[2], d.elements[0]);
+        pheta -= 5*(Math.PI/180);
+        let newX = r*Math.cos(pheta);
+        let newY = r*Math.sin(pheta);
+        d.elements[0] = newX;
+        d.elements[2] = newY;
+
+        this.at = d.add(this.eye);
     }
 }
