@@ -61,6 +61,14 @@ class Camera {
         this.at.sub(right);
     }
 
+    moveUp() {
+        this.eye.add(this.up);
+    }
+
+    moveDown() {
+        this.eye.sub(this.up);
+    }
+
     turnRight() {
         let copy_at = new Vector3();
         copy_at.set(this.at);
@@ -95,5 +103,14 @@ class Camera {
         d.elements[2] = newY;
 
         this.at = d.add(this.eye);
+    }
+
+    // Code for camera panning up/down from: https://people.ucsc.edu/~jbrowne2/asgn3/World.html
+    turnUp() {
+        this.at.elements[1] += 5;
+    }
+
+    turnDown() {
+        this.at.elements[1] -= 5;
     }
 }

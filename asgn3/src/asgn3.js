@@ -65,21 +65,6 @@ function setupWebGL() {
     gl.enable(gl.DEPTH_TEST);
 }
 
-// code from: https://people.ucsc.edu/~adion/Andre_Dion_Assignment_2/asg2.html
-function setupGLBuffer() {
-    // Create a buffer object
-    vertexBuffer = gl.createBuffer();
-    if (!vertexBuffer) {
-      console.log('Failed to create the buffer object');
-      return -1;
-    }
-
-    // Bind the buffer object to target
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    // Assign the buffer object to a_Position variable
-    gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
-}
-
 function connectVariablesToGLSL() {
     // Initialize shaders
     if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
@@ -206,15 +191,13 @@ function addActionsForHTMLUI() {
 
 function main() {
     setupWebGL();
-    setupGLBuffer();
     connectVariablesToGLSL();
     addActionsForHTMLUI();
 
     initTextures();
 
-    // Register function (event handler) tobe called on a mouse press
-    canvas.onmousedown = function(ev) { [g_prev_x, g_prev_y] = convertCoordinatesEventToGL(ev); click(ev); };
-    canvas.onmousemove = function(ev) { if (ev.buttons==1) {click(ev)} }
+    // Register function (event handler) to be called on a mouse press
+    canvas.onmousemove = function(ev) { if (ev.buttons == 1) {click(ev)} }
     document.onkeydown = keydown;
     // Specify the color for clearing <canvas>
     gl.clearColor(0.424, 0.49, 0.235, 1.0);
@@ -268,7 +251,6 @@ function sendTextureToTEXTURE0(image0) {
   // Set the texture unit 0 to the sampler
   gl.uniform1i(u_Sampler0, 0);
 
-  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   console.log("Finished sendTextureToTEXTURE0()");
 }
 
@@ -293,7 +275,6 @@ function sendTextureToTEXTURE1(image1) {
   // Set the texture unit 1 to the sampler
   gl.uniform1i(u_Sampler1, 1);
 
-  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   console.log("Finished sendTextureToTEXTURE1()");
 }
 
@@ -337,6 +318,40 @@ function updateAnimationAngles() {
 
 let g_camera = new Camera();
 let g_fov = 60;
+let g_size = 32;
+let g_addedElements = [];
+
+perlin.seed();
+let g_map = [];
+for (let x = 0; x < 1; x += 1/g_size) {
+  let row = [];
+  for (let y = 0; y < 1; y += 1/g_size) {
+    let intensity = Math.round(perlin.get(x, y)*25);
+    row.push(intensity);
+  }
+  g_map.push(row);
+}
+
+function drawMap() {
+  for (let x = 0; x < g_size; x++) {
+    for (let y = 0; y < g_size; y++) {
+      let body = new Cube();
+      body.textureNum = 1;
+      body.color = [1, 1, 1, 1];
+      body.matrix.setTranslate(0, -g_size/4, 0);
+      body.matrix.translate(x-g_size/2, g_map[x][y], y-g_size/2);
+      body.render();
+    }
+  }
+
+  g_addedElements.forEach(element => {
+    let body = new Cube();
+    body.textureNum = 0;
+    body.color = [1, 1, 1, 1];
+    body.matrix.setTranslate(element[0], element[1], element[2]);
+    body.render();
+  });
+}
 
 function renderAllShapes() {
     let startTime = performance.now();
@@ -362,21 +377,15 @@ function renderAllShapes() {
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Draw floor
-    let floor = new Cube();
-    floor.color = [1, 1, 1, 1];
-    floor.textureNum = 1;
-    floor.matrix.translate(0, -.75, 0);
-    floor.matrix.scale(50, 0, 50);
-    floor.matrix.translate(-.5, 0, -.5);
-    floor.render();
+    // Draw maze
+    drawMap();
 
     // Draw skybox
     let sky = new Cube();
     sky.color = [1, 1, 1, 1];
     sky.textureNum = 0;
-    sky.matrix.scale(50, 50, 50);
-    sky.matrix.translate(-0.5, -0.5, -0.5);
+    sky.matrix.scale(g_size, g_size, g_size);
+    sky.matrix.translate(-0.5, -0.5, -0.500001);
     sky.render();
 
     let bear = new Bear();
@@ -395,7 +404,7 @@ function sendTextToHTML(text, htmlID) {
     htmlEL.innerHTML = text;
 }
 
-// from https://people.ucsc.edu/~adion/Andre_Dion_Assignment_2/asg2.html
+// Code for camera panning up/down from: https://people.ucsc.edu/~jbrowne2/asgn3/World.html
 function click(ev) {
     if (ev.shiftKey && !g_animationEvent) {
       g_animationEvent = true;
@@ -405,53 +414,64 @@ function click(ev) {
       return;
     }
 
-    let [cur_x, cur_y] = convertCoordinatesEventToGL(ev);
-    
-    let change_x = cur_x - g_prev_x;
-    g_globalAngle += 180 * change_x; 
-    g_globalAngle %= 360; 
-    if (g_globalAngle <= 0) {
-      g_globalAngle += 360;
-    }
+    let cur_x = ev.clientX; // x coordinate of a mouse pointer
+    let cur_y = ev.clientY; // y coordinate of a mouse pointer
 
-    let change_y = cur_y - g_prev_y;
-    g_globalPitch += 180 * change_y; 
-    g_globalPitch %= 360; 
-    if (g_globalPitch <= 0) {
-      g_globalPitch += 360;
+    let factor = 100/canvas.height; // 100/400 -> 1/4?
+    let change_x = factor*(cur_x - g_prev_x);
+    let change_y = factor*(cur_y - g_prev_y);
+    if (change_x > 0) {
+        g_camera.turnRight();
+    } else if (change_x < 0) {
+        g_camera.turnLeft();
+    }
+    if (change_y < 0) {
+        g_camera.turnUp();
+    } else if (change_y > 0) {
+        g_camera.turnDown();
     }
 
     g_prev_x = cur_x; 
     g_prev_y = cur_y;
 }
 
-// Extract the event click and convert it to WebGL coordinates
-function convertCoordinatesEventToGL(ev) {
-    var x = ev.clientX; // x coordinate of a mouse pointer
-    var y = ev.clientY; // y coordinate of a mouse pointer
-    var rect = ev.target.getBoundingClientRect();
+// // Extract the event click and convert it to WebGL coordinates
+// function convertCoordinatesEventToGL(ev) {
+//     var x = ev.clientX; // x coordinate of a mouse pointer
+//     var y = ev.clientY; // y coordinate of a mouse pointer
+//     var rect = ev.target.getBoundingClientRect();
 
-    x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
-    y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
+//     x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
+//     y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
 
-    return([x, y]);
-}
+//     return([x, y]);
+// }
 
 function keydown(ev) {
-  if (ev.keyCode==87 || ev.keyCode==38) {
+  if (ev.keyCode==87 || ev.keyCode==38) { // w or ^
     g_camera.moveForward();
-  } else if (ev.keyCode==65 || ev.keyCode==37) {
+  } else if (ev.keyCode==65 || ev.keyCode==37) { // a or <
     g_camera.moveLeft();
-  } else if (ev.keyCode==68 || ev.keyCode==39) {
+  } else if (ev.keyCode==68 || ev.keyCode==39) { // d or >
     g_camera.moveRight();
-  } else if (ev.keyCode==83 || ev.keyCode==40) {
+  } else if (ev.keyCode==83 || ev.keyCode==40) { // s or v (down)
     g_camera.moveBackward();
-  } else if (ev.keyCode==81) {
+  } else if (ev.keyCode==81) { // q
     g_camera.turnLeft();
-  } else if (ev.keyCode==69) {
+  } else if (ev.keyCode==69) { // e
     g_camera.turnRight();
-  }
+  } else if (ev.keyCode==90) { // z
+    g_camera.moveUp();
+  } else if (ev.keyCode==67) { // c
+    g_camera.moveDown();
+  } else if (ev.keyCode==32) {
+    console.log("space");
+    console.log(g_camera.eye.elements[0]);
+    console.log(g_camera.eye.elements[2]);
+    g_addedElements.push([Math.round(g_camera.eye.elements[0]), Math.round(g_camera.eye.elements[1]), Math.round(g_camera.eye.elements[2])]);
+  } else if (ev.keyCode==13) { // enter 
+    g_addedElements.pop();
+  } 
 
   renderAllShapes();
-  // console.log(ev.keyCode);
 }
