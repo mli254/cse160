@@ -189,18 +189,6 @@ function addActionsForHTMLUI() {
     // Button Events
     document.getElementById("aniBodyOffButton").onclick = function() {g_bodyAnimation = false;};
     document.getElementById("aniBodyOnButton").onclick = function() {g_bodyAnimation = true;};
-
-    // // Joint Slider Events 
-    // document.getElementById("bodyAngleSlide").addEventListener('mousemove', function() { g_bodyAngleX = this.value; renderAllShapes(); }); 
-    // document.getElementById("rightArmSlide").addEventListener('mousemove', function() { g_rightArmAngle = this.value; renderAllShapes(); });
-    // document.getElementById("leftArmSlide").addEventListener('mousemove', function() { g_leftArmAngle = this.value; renderAllShapes(); }); 
- 
-    // document.getElementById("rightPawSlide").addEventListener('mousemove', function() { g_rightPawAngle = this.value; renderAllShapes(); }); 
-    // document.getElementById("leftPawSlide").addEventListener('mousemove', function() { g_leftPawAngle = this.value; renderAllShapes(); }); 
-
-    // // Camera Angle Slider Events
-    // document.getElementById("angleslide").addEventListener('mousemove', function() { g_globalAngle = this.value; renderAllShapes(); });
-    // document.getElementById("pitchslide").addEventListener('mousemove', function() { g_globalPitch = this.value; renderAllShapes(); });
   }
 
 function main() {
@@ -383,9 +371,9 @@ for (let x = 0; x < 1; x += 1/g_size) {
 }
 
 function resetFoxPosition() {
-  g_foxY = ((Math.random()*100)%g_size/4)-1;
-  g_foxX = ((Math.random()*100)%g_size/4)-1;
-  g_foxZ = ((Math.random()*100)%g_size/4)-1;
+  g_foxY = ((Math.random()*100)%g_size/2)-1;
+  g_foxX = ((Math.random()*100)%g_size/2)-1;
+  g_foxZ = ((Math.random()*100)%g_size/2)-1;
 }
 
 let interval = window.setInterval(resetFoxPosition, 1000);
@@ -496,18 +484,6 @@ function click(ev) {
     g_prev_x = cur_x; 
     g_prev_y = cur_y;
 }
-
-// // Extract the event click and convert it to WebGL coordinates
-// function convertCoordinatesEventToGL(ev) {
-//     var x = ev.clientX; // x coordinate of a mouse pointer
-//     var y = ev.clientY; // y coordinate of a mouse pointer
-//     var rect = ev.target.getBoundingClientRect();
-
-//     x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
-//     y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
-
-//     return([x, y]);
-// }
 
 function keydown(ev) {
   if (ev.keyCode==87 || ev.keyCode==38) { // w or ^
