@@ -79,9 +79,8 @@ function drawTriangle3D(vertices) {
     gl.drawArrays(gl.TRIANGLES, 0, n);
 }
 
-function drawTriangle3DUV(vertices, uv) {
+function drawTriangle3DUV(vertices, uv, n) {
     // HelloTriangle.js (c) 2012 matsuda
-    var n = 3; // The number of vertices
 
     // Create a buffer object
     vertexBuffer = gl.createBuffer();

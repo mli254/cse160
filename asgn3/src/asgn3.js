@@ -473,14 +473,14 @@ function renderAllShapes() {
     rightEye.render();
 
     // == EARS =======================
-    let rightEar = new Pyramid();
+    let rightEar = new Cube();
     rightEar.color = black;
     rightEar.matrix = new Matrix4(headCoordinatesMat);
     rightEar.matrix.scale(0.05, 0.1, 0.1);
     rightEar.matrix.translate(0.5, 2.5, 0.25);
     rightEar.render();
 
-    let leftEar = new Pyramid();
+    let leftEar = new Cube();
     leftEar.color = black;
     leftEar.matrix = new Matrix4(rightEar.matrix);
     leftEar.matrix.translate(0, 0, 2.5);
