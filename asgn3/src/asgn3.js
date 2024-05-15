@@ -34,6 +34,9 @@ var FSHADER_SOURCE =
       gl_FragColor = texture2D(u_Sampler1, v_UV);
     } else if (u_whichTexture == 2) {
       gl_FragColor = texture2D(u_Sampler2, v_UV);
+    } else if (u_whichTexture == 3) {
+      vec4 color1 = texture2D(u_Sampler0, v_UV);
+      gl_FragColor = color1 * u_FragColor;
     } else {
       gl_FragColor = vec4(1, .2, .2, 1); // Error, reddish
     }
@@ -359,6 +362,8 @@ let g_foxX = ((Math.random()*100)%g_size/4)-1;
 let g_foxZ = ((Math.random()*100)%g_size/4)-1;
 let g_addedElements = [];
 
+let g_foundFox = false;
+
 perlin.seed();
 let g_map = [];
 for (let x = 0; x < 1; x += 1/g_size) {
@@ -384,7 +389,7 @@ function drawMap() {
       let body = new Cube();
       body.textureNum = 1;
       body.color = [1, 1, 1, 1];
-      body.matrix.setTranslate(0, -g_size/4, 0);
+      body.matrix.setTranslate(0, -g_size/3, 0);
       body.matrix.translate(x-g_size/2, g_map[x][y], y-g_size/2);
       body.render();
     }
@@ -434,12 +439,16 @@ function renderAllShapes() {
     sky.matrix.translate(-0.5, -0.5, -0.500001);
     sky.render();
 
-    let bear = new Bear();
-    bear.render();
-
     g_OBJ.model_matrix.setTranslate(1, 1, 1);
     g_OBJ.model_matrix.translate(g_foxX, g_foxY, g_foxZ);
     g_OBJ.render();
+
+    let ocean = new Cube();
+    ocean.color = [68/256, 109/256, 154/256, 1];
+    ocean.textureNum = -2;
+    ocean.matrix.scale(g_size, g_size, g_size);
+    ocean.matrix.translate(-0.500001, -1.2+(0.1)*(Math.sin(g_seconds)), -0.500002);
+    ocean.render();
 
     let duration = performance.now() - startTime;
     sendTextToHTML(" ms: " + Math.floor(duration) + " fps: " + Math.floor(10000/duration), "fps");
@@ -502,7 +511,7 @@ function keydown(ev) {
     g_camera.moveUp();
   } else if (ev.keyCode==67) { // c
     g_camera.moveDown();
-  } else if (ev.keyCode==32) {
+  } else if (ev.keyCode==16) {
     g_addedElements.push([Math.round(g_camera.eye.elements[0]), Math.round(g_camera.eye.elements[1]), Math.round(g_camera.eye.elements[2])]);
   } else if (ev.keyCode==13) { // enter 
     g_addedElements.pop();
