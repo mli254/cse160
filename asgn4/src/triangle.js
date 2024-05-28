@@ -115,7 +115,8 @@ function drawTriangle3DUV(vertices, uv, n) {
     gl.drawArrays(gl.TRIANGLES, 0, n);
 }
 
-function drawTriangle3DUVNormal(vertices, uv, normals, n) {
+function drawTriangle3DUVNormal(vertices, uv, normals) {
+    let n = vertices.length / 3;
     // Create a buffer object
     var vertexBuffer = gl.createBuffer();
     if (!vertexBuffer) {

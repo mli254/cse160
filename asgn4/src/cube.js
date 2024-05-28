@@ -56,6 +56,10 @@ class Cube {
         this.color = color;
         var rgba = this.color;
 
+        if (g_normalOn == true) {
+            this.textureNum = -3;
+        }
+
         // Pass the texture number
         gl.uniform1i(u_whichTexture, this.textureNum);
 

@@ -1,7 +1,7 @@
 class Bear {
     constructor() {
         this.type = "bear";
-        this.buffer = null;
+        this.shapes = [];
         this.modelMatrix = new Matrix4();
     }
 
@@ -25,11 +25,47 @@ class Bear {
         let leftArmCoordinatesMat;
         let leftArmDimensionsMat;
 
-        // Draw body cube
+        // Creating all parts
         let body = new Cube();
+        let neck = new Cube();
+        let head = new Cube();
+        let face = new Cube();
+        let nose = new Cube();
+        let leftEye = new Cube();
+        let rightEye = new Cube();
+        let rightEar = new Cube();
+        let leftEar = new Cube();
+        let frontRightArm = new Cube();
+        let backRightArm = new Cube();
+        let frontLeftArm = new Cube();
+        let backLeftArm = new Cube();
+        let frontRightPaw = new Cube();
+        let frontLeftPaw = new Cube();
+        let backRightPaw = new Cube();
+        let backLeftPaw = new Cube();
+
+        // Creating master list of all parts
+        this.shapes.push(body);
+        this.shapes.push(neck);
+        this.shapes.push(head);
+        this.shapes.push(face);
+        this.shapes.push(nose);
+        this.shapes.push(leftEye);
+        this.shapes.push(rightEye);
+        this.shapes.push(rightEar);
+        this.shapes.push(leftEar);
+        this.shapes.push(frontRightArm);
+        this.shapes.push(backRightArm);
+        this.shapes.push(frontLeftArm);
+        this.shapes.push(backLeftArm);
+        this.shapes.push(frontRightPaw);
+        this.shapes.push(frontLeftPaw);
+        this.shapes.push(backRightPaw);
+        this.shapes.push(backLeftPaw);
+
+        // Draw body cube
         body.matrix = this.modelMatrix;
         body.color = black;
-        body.textureNum = -2;
         body.matrix.translate(-0.2, -0.2, -0.2);
         // Rotate the body from side to side
         body.matrix.rotate(-g_bodyAngleX, 0, 1, 0);
@@ -38,11 +74,10 @@ class Bear {
         bodyCoordinatesMat = new Matrix4(body.matrix);
         // Scale body
         body.matrix.scale(0.7, 0.5, 0.5);
-        body.render();
+        body.render(); 
 
         // == HEAD ====================
         // Draw the neck cube
-        let neck = new Cube();
         neck.color = black;
         neck.textureNum = -2;
         // Attach the neck to the main body
@@ -52,9 +87,7 @@ class Bear {
         neck.render();
 
         // Draw the head cube
-        let head = new Cube();
         head.color = black;
-        head.textureNum = -2;
         // Attach the head to the main body
         head.matrix = new Matrix4(bodyCoordinatesMat);
         head.matrix.translate(-0.4, 0.3, 0.05);
@@ -63,10 +96,8 @@ class Bear {
         head.matrix.scale(0.35, 0.3, 0.4);
         head.render();
 
-        // Draw the face cube
-        let face = new Cube();
+        // Draw the face cube        
         face.color = underside;
-        face.textureNum = -2;
         // Attach the face to the head
         face.matrix = new Matrix4(headCoordinatesMat);
         face.matrix.translate(-0.05, 0.0001, 0.1);
@@ -75,48 +106,39 @@ class Bear {
         face.matrix.scale(0.15, 0.15, 0.2);
         face.render();
 
-        // == FEATURES (EYES/NOSE) ==================
-        let nose = new Cube();
+        // == FEATURES (EYES/NOSE) ==================      
         nose.color = features;
-        nose.textureNum = -2;
         // Attach nose to the face
         nose.matrix = new Matrix4(faceCoordinatesMat);
         nose.matrix.translate(-0.005, 0.10001, 0.08);
         nose.matrix.scale(0.05, 0.05, 0.05);
         dotDimensionsMat = new Matrix4(nose.matrix);
         nose.render();
-
-        let leftEye = new Cube();
+       
         leftEye.color = offwhite;
-        leftEye.textureNum = -2;
         leftEye.matrix = dotDimensionsMat;
         leftEye.matrix.translate(0.9, 0.7, 2.5);
         leftEye.render();
-
-        let rightEye = new Cube();
+     
         rightEye.color = offwhite;
-        rightEye.textureNum = -2;
         rightEye.matrix = new Matrix4(leftEye.matrix);
         rightEye.matrix.translate(0, 0, -5.2);
         rightEye.render();
 
         // == EARS =======================
-        let rightEar = new Cube();
         rightEar.color = black;
         rightEar.matrix = new Matrix4(headCoordinatesMat);
         rightEar.matrix.scale(0.05, 0.1, 0.1);
         rightEar.matrix.translate(0.5, 2.5, 0.25);
         rightEar.render();
-
-        let leftEar = new Cube();
+       
         leftEar.color = black;
         leftEar.matrix = new Matrix4(rightEar.matrix);
         leftEar.matrix.translate(0, 0, 2.5);
         leftEar.render();
 
         // == LEGS ==============================
-        // Draw front right
-        let frontRightArm = new Cube();
+        // Draw front right       
         frontRightArm.color = black;
         // Attach front right arm to the main body
         frontRightArm.matrix = new Matrix4(bodyCoordinatesMat);
@@ -131,16 +153,14 @@ class Bear {
         rightArmDimensionsMat = new Matrix4(frontRightArm.matrix);
         frontRightArm.render();
 
-        // Draw back right
-        let backRightArm = new Cube();
+        // Draw back right     
         backRightArm.color = black;
         // Copy the dimensions of the arm
         backRightArm.matrix = rightArmDimensionsMat;
         backRightArm.matrix.translate(2, 0, 0);
         backRightArm.render();
 
-        // Draw front left
-        let frontLeftArm = new Cube();
+        // Draw front left    
         frontLeftArm.color = black;
         // Attach front left arm to the main body
         frontLeftArm.matrix = new Matrix4(bodyCoordinatesMat);
@@ -155,8 +175,7 @@ class Bear {
         leftArmDimensionsMat = new Matrix4(frontLeftArm.matrix);
         frontLeftArm.render();
 
-        // Draw back left
-        let backLeftArm = new Cube();
+        // Draw back left 
         backLeftArm.color = black;
         // Copy the dimensions of the arm
         backLeftArm.matrix = leftArmDimensionsMat;
@@ -165,7 +184,6 @@ class Bear {
 
         // == PAWS =================
         // Draw front right paw
-        let frontRightPaw = new Cube();
         // Attach the paw to the arm
         frontRightPaw.matrix = new Matrix4(rightArmCoordinatesMat);
         frontRightPaw.matrix.translate(-0.05, 0.01, 0.001);
@@ -176,7 +194,6 @@ class Bear {
         frontRightPaw.render(black);
 
         // Draw front left paw
-        let frontLeftPaw = new Cube();
         // Attach the paw to the arm
         frontLeftPaw.matrix = new Matrix4(leftArmCoordinatesMat);
         frontLeftPaw.matrix.translate(-0.05, 0.01, 0.001);
@@ -187,7 +204,6 @@ class Bear {
         frontLeftPaw.render(black);
 
         // Draw back right paw
-        let backRightPaw = new Cube();
         // Attach the paw to the arm
         backRightPaw.matrix = new Matrix4(rightArmCoordinatesMat);
         backRightPaw.matrix.translate(0.35, 0.01, 0.001);
@@ -197,7 +213,6 @@ class Bear {
         backRightPaw.matrix.scale(.2, .1, .19);
         backRightPaw.render(black);
 
-        let backLeftPaw = new Cube();
         // Attach the paw to the arm
         backLeftPaw.matrix = new Matrix4(leftArmCoordinatesMat);
         backLeftPaw.matrix.translate(0.35, 0.01, 0.001);

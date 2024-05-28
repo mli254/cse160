@@ -7,6 +7,7 @@ var VSHADER_SOURCE =
   attribute vec3 a_Normal;
   varying vec2 v_UV;
   varying vec3 v_Normal;
+  varying vec4 v_VertPos;
   uniform mat4 u_ModelMatrix;
   uniform mat4 u_GlobalRotateMatrix;
   uniform mat4 u_ViewMatrix;
@@ -15,6 +16,7 @@ var VSHADER_SOURCE =
     gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
     v_UV = a_UV;
     v_Normal = a_Normal;
+    v_VertPos = u_ModelMatrix * a_Position; // gives position in world coordinates
   }`
 
 // Fragment shader program
@@ -27,6 +29,10 @@ var FSHADER_SOURCE =
   uniform sampler2D u_Sampler1;
   uniform sampler2D u_Sampler2;
   uniform int u_whichTexture;
+  uniform bool u_lightOn;
+  uniform vec3 u_lightPos;
+  uniform vec3 u_cameraPos;
+  varying vec4 v_VertPos;
   void main() {
     if (u_whichTexture == -3) {
       gl_FragColor = vec4((v_Normal+1.0)/2.0, 1.0); // using normal
@@ -46,7 +52,42 @@ var FSHADER_SOURCE =
     } else {
       gl_FragColor = vec4(1, .2, .2, 1); // Error, reddish
     }
-  }`;
+
+    vec3 lightVector = u_lightPos-vec3(v_VertPos);
+    float r = length(lightVector);
+
+    // Red-Green Visualization
+    // if (r<1.0) {
+    //   gl_FragColor = vec4(1,0,0,1);
+    // } else if (r<2.0) {
+    //   gl_FragColor = vec4(0,1,0,1);
+    // }
+
+    // Light Falloff Visualization (1/r^2)
+    // gl_FragColor = vec4(vec3(gl_FragColor)/(r*r), 1);
+
+    // N dot L
+    vec3 L = normalize(lightVector);
+    vec3 N = normalize(v_Normal);
+    float nDotL = max(dot(N,L), 0.0);
+
+    // Reflection
+    vec3 R = reflect(-L, N);
+    
+    // eye
+    vec3 F = normalize(u_cameraPos-vec3(v_VertPos));
+
+    // Specular
+    float specular = pow(max(dot(F, R), 0.0), 10.0);
+
+    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
+    vec3 ambient = vec3(gl_FragColor) * 0.3;
+
+    if (u_lightOn) {
+      gl_FragColor = vec4(specular+diffuse+ambient, 1.0);
+    }
+    
+  }`
 
 // global variables
 let canvas;
@@ -66,6 +107,9 @@ let u_Sampler0;
 let u_Sampler1;
 let u_Sampler2;
 let u_whichTexture;
+let u_lightPos;
+let u_cameraPos;
+let u_lightOn;
 
 function setupWebGL() {
     // Retrieve <canvas> element
@@ -164,6 +208,24 @@ function connectVariablesToGLSL() {
       return false;
     }
 
+    u_lightPos = gl.getUniformLocation(gl.program, 'u_lightPos');
+    if (!u_lightPos) {
+      console.log("Failed to get the storage location of u_lightPos");
+      return false;
+    }
+
+    u_cameraPos = gl.getUniformLocation(gl.program, 'u_cameraPos');
+    if (!u_cameraPos) {
+      console.log("Failed to get the storage location of u_cameraPos");
+      return false;
+    }
+
+    u_lightOn = gl.getUniformLocation(gl.program, 'u_lightOn');
+    if (!u_lightOn) {
+      console.log("Failed to get the storage location of u_lightOn");
+      return false;
+    }
+
     // Set an initial value for this matrix to identify
     let identityM = new Matrix4();
     gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
@@ -180,6 +242,8 @@ let g_prev_x = 0;
 let g_prev_y = 0;
 
 let g_normalOn = false;
+let g_lightOn = true;
+let g_lightPos = [0, 0, 1];
 
 // Body Angles
 let g_bodyAngleX = 0;
@@ -200,14 +264,19 @@ let g_leftArmMove = 0;
 let g_rightPawMove = 0;
 let g_leftPawMove = 0;
 
-// OBJ Loader
-let g_OBJ = new OBJ();
-
 function addActionsForHTMLUI() {
     // Normal Debug Button Events
     document.getElementById("normalOn").onclick = function() {g_normalOn = true;};
     document.getElementById("normalOff").onclick = function() {g_normalOn = false;};
-    
+
+    // Light On/Off Button Events
+    document.getElementById("lightOn").onclick = function() {g_lightOn = true;};
+    document.getElementById("lightOff").onclick = function() {g_lightOn = false;};
+
+    // Light Slider Events
+    document.getElementById("lightSlideX").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_lightPos[0] = this.value/100; renderAllShapes();}})
+    document.getElementById("lightSlideY").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_lightPos[1] = this.value/100; renderAllShapes();}})
+    document.getElementById("lightSlideZ").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_lightPos[2] = this.value/100; renderAllShapes();}})
     // Animation Button Events
     document.getElementById("aniBodyOffButton").onclick = function() {g_bodyAnimation = false;};
     document.getElementById("aniBodyOnButton").onclick = function() {g_bodyAnimation = true;};
@@ -371,11 +440,13 @@ function updateAnimationAngles() {
 
       g_leftPawAngle = -(10*Math.sin(5*g_seconds));
     }
+
+    g_lightPos[0] = Math.cos(g_seconds);
 }
 
 let g_camera = new Camera();
 let g_fov = 60;
-let g_size = 32;
+let g_size = 5;
 
 function renderAllShapes() {
     let startTime = performance.now();
@@ -401,6 +472,23 @@ function renderAllShapes() {
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    // Passing light position to GLSL
+    gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+
+    // Passing the camera position to GLSL
+    gl.uniform3f(u_cameraPos, g_camera.eye.elements[0], g_camera.eye.elements[1], g_camera.eye.elements[2]);
+
+    // Determine whether to draw light or not
+    gl.uniform1i(u_lightOn, g_lightOn);
+
+    // Draw light
+    let light = new Cube();
+    light.color = [2, 2, 0, 1];
+    light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+    light.matrix.scale(-.1, -.1, -.1);
+    light.matrix.translate(-0.5, -0.5, -0.5);
+    light.render();
+
     // Draw skybox
     let sky = new Cube();
     sky.color = [1, 1, 1, 1];
@@ -417,13 +505,24 @@ function renderAllShapes() {
     floor.color = [1,1,1,1];
     floor.textureNum = 1;
     floor.matrix.scale(-g_size, 1, -g_size);
-    floor.matrix.translate(-0.5, -10, -0.5);
+    floor.matrix.translate(-0.500001, -2.5, -0.5);
     floor.render();
 
     // Draw bear
     let bear = new Bear();
-    bear.modelMatrix.translate(0, -6, 0);
+    bear.modelMatrix.scale(0.5, 0.5, 0.5);
+    bear.modelMatrix.translate(1, -1.5, 1);
     bear.render();
+
+    // Draw sphere
+    let sphere = new Sphere();
+    sphere.textureNum = 3;
+    if (g_normalOn == true) {
+      sphere.textureNum = -3;
+    }
+    sphere.matrix.scale(0.5, 0.5, 0.5);
+    sphere.matrix.translate(-1, -1.5, 0);
+    sphere.render();
 
     let duration = performance.now() - startTime;
     sendTextToHTML(" ms: " + Math.floor(duration) + " fps: " + Math.floor(10000/duration), "fps");

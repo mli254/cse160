@@ -12,13 +12,22 @@
     <p id="fps">
     </p>
     <p>Normal Debug
-    <button type="button" id="normalOn">Normal On</button>
-    <button type="button" id="normalOff">Normal Off</button></p>
+      <button type="button" id="normalOn">Normal On</button>
+      <button type="button" id="normalOff">Normal Off</button></p>
     <p>
-        Idle Animation
-        <button type="button" id="aniBodyOffButton">Off</button>
-        <button type="button" id="aniBodyOnButton">On</button>
-        <br>
+      <p>Light Off/On
+        <button type="button" id="lightOn">Light On</button>
+        <button type="button" id="lightOff">Light Off</button></p>
+      <p>
+    <p>
+      Light X<input type="range" min="-250" max="250" value="200" class="slider" id="lightSlideX">
+      Light Y<input type="range" min="-500" max="500" value="100" class="slider" id="lightSlideY">
+      Light Z<input type="range" min="-250" max="250" value="-200" class="slider" id="lightSlideZ">
+    </p>
+      Idle Animation
+      <button type="button" id="aniBodyOffButton">Off</button>
+      <button type="button" id="aniBodyOnButton">On</button>
+      <br>
     </p>
     <p>
         <strong>Grader's Notes:</strong> 
@@ -32,13 +41,11 @@
     <script src="../lib/webgl-debug.js"></script>
     <script src="../lib/cuon-utils.js"></script>
     <script src="../lib/cuon-matrix-cse160.js"></script>
-    <script src="./obj_loader.js"></script>
     <script src="./triangle.js"></script>
     <script src="./cube.js"></script>
-    <script src="./pyramid.js"></script>
+    <script src="./sphere.js"></script>
     <script src="./camera.js"></script>
     <script src="./bear.js"></script>
-    <script src="./perlin.js"></script>
     <script src="./asgn4.js"></script>
   </body>
 </html>
