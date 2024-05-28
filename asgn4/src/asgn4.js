@@ -104,7 +104,7 @@ function connectVariablesToGLSL() {
     if (a_Normal < 0) {
       console.log('Failed to get the storage location of a_Normal');
       return;
-  }
+    }
 
     // Get the storage location of u_FragColor
     u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
@@ -211,7 +211,7 @@ function addActionsForHTMLUI() {
     // Animation Button Events
     document.getElementById("aniBodyOffButton").onclick = function() {g_bodyAnimation = false;};
     document.getElementById("aniBodyOnButton").onclick = function() {g_bodyAnimation = true;};
-  }
+}
 
 function main() {
     setupWebGL();
@@ -219,7 +219,7 @@ function main() {
     addActionsForHTMLUI();
 
     initTextures();
-    g_OBJ.readOBJFile();
+
     // Register function (event handler) to be called on a mouse press
     canvas.onmousemove = function(ev) { if (ev.buttons == 1) {click(ev)} }
     document.onkeydown = keydown;
@@ -376,52 +376,6 @@ function updateAnimationAngles() {
 let g_camera = new Camera();
 let g_fov = 60;
 let g_size = 32;
-let g_foxY = ((Math.random()*100)%g_size/4)-1;
-let g_foxX = ((Math.random()*100)%g_size/4)-1;
-let g_foxZ = ((Math.random()*100)%g_size/4)-1;
-let g_addedElements = [];
-
-let g_foundFox = false;
-
-perlin.seed();
-let g_map = [];
-for (let x = 0; x < 1; x += 1/g_size) {
-  let row = [];
-  for (let y = 0; y < 1; y += 1/g_size) {
-    let intensity = Math.round(perlin.get(x, y)*25);
-    row.push(intensity);
-  }
-  g_map.push(row);
-}
-
-function resetFoxPosition() {
-  g_foxY = ((Math.random()*100)%g_size/2)-1;
-  g_foxX = ((Math.random()*100)%g_size/2)-1;
-  g_foxZ = ((Math.random()*100)%g_size/2)-1;
-}
-
-let interval = window.setInterval(resetFoxPosition, 1000);
-
-function drawMap() {
-  for (let x = 0; x < g_size; x++) {
-    for (let y = 0; y < g_size; y++) {
-      let body = new Cube();
-      body.textureNum = 1;
-      body.color = [1, 1, 1, 1];
-      body.matrix.setTranslate(0, -g_size/3, 0);
-      body.matrix.translate(x-g_size/2, g_map[x][y], y-g_size/2);
-      body.render();
-    }
-  }
-
-  g_addedElements.forEach(element => {
-    let body = new Cube();
-    body.textureNum = 2;
-    body.color = [1, 1, 1, 1];
-    body.matrix.setTranslate(element[0], element[1], element[2]);
-    body.render();
-  });
-}
 
 function renderAllShapes() {
     let startTime = performance.now();
@@ -447,9 +401,6 @@ function renderAllShapes() {
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Draw maze
-    drawMap();
-
     // Draw skybox
     let sky = new Cube();
     sky.color = [1, 1, 1, 1];
@@ -461,16 +412,18 @@ function renderAllShapes() {
     sky.matrix.translate(-0.5, -0.5, -0.500001);
     sky.render();
 
-    g_OBJ.model_matrix.setTranslate(1, 1, 1);
-    g_OBJ.model_matrix.translate(g_foxX, g_foxY, g_foxZ);
-    g_OBJ.render();
+    // Draw floor
+    let floor = new Cube();
+    floor.color = [1,1,1,1];
+    floor.textureNum = 1;
+    floor.matrix.scale(-g_size, 1, -g_size);
+    floor.matrix.translate(-0.5, -10, -0.5);
+    floor.render();
 
-    let ocean = new Cube();
-    ocean.color = [68/256, 109/256, 154/256, 1];
-    ocean.textureNum = -2;
-    ocean.matrix.scale(g_size, g_size, g_size);
-    ocean.matrix.translate(-0.500001, -1.2+(0.1)*(Math.sin(g_seconds)), -0.500002);
-    ocean.render();
+    // Draw bear
+    let bear = new Bear();
+    bear.modelMatrix.translate(0, -6, 0);
+    bear.render();
 
     let duration = performance.now() - startTime;
     sendTextToHTML(" ms: " + Math.floor(duration) + " fps: " + Math.floor(10000/duration), "fps");
@@ -533,11 +486,6 @@ function keydown(ev) {
     g_camera.moveUp();
   } else if (ev.keyCode==67) { // c
     g_camera.moveDown();
-  } else if (ev.keyCode==16) {
-    g_addedElements.push([Math.round(g_camera.eye.elements[0]), Math.round(g_camera.eye.elements[1]), Math.round(g_camera.eye.elements[2])]);
-  } else if (ev.keyCode==13) { // enter 
-    g_addedElements.pop();
-  } 
-
+  }
   renderAllShapes();
 }

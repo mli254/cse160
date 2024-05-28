@@ -27,6 +27,7 @@ class Bear {
 
         // Draw body cube
         let body = new Cube();
+        body.matrix = this.modelMatrix;
         body.color = black;
         body.textureNum = -2;
         body.matrix.translate(-0.2, -0.2, -0.2);
