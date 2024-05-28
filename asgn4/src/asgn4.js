@@ -88,8 +88,8 @@ var FSHADER_SOURCE =
     // Spot Light
     if (u_spotLightOn) {
       vec3 lightVector = u_spotLightPos-vec3(v_VertPos);
-      vec3 directionVector = u_spotLightPos - u_spotLightAt;
-      vec3 D = normalize(directionVector);
+      vec3 directionVector = u_spotLightPos - u_spotLightAt; // vector pointing from the spotlight origin and the spotlight destination
+      vec3 D = normalize(directionVector); // normalize to only the direction
 
       float r = length(lightVector);
 
@@ -175,12 +175,14 @@ function connectVariablesToGLSL() {
         return;
     }
 
+    // Get the storage location of a_UV
     a_UV = gl.getAttribLocation(gl.program, 'a_UV');
     if (a_UV < 0) {
         console.log('Failed to get the storage location of a_UV');
         return;
     }
 
+    // Get the storage location of a_Normal
     a_Normal = gl.getAttribLocation(gl.program, 'a_Normal');
     if (a_Normal < 0) {
       console.log('Failed to get the storage location of a_Normal');
@@ -208,12 +210,14 @@ function connectVariablesToGLSL() {
         return;
     }
 
+    // Get the storage location of u_ViewMatrix
     u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
     if (!u_ViewMatrix) {
         console.log('Failed to get the storage location of u_ViewMatrix');
         return;
     }
 
+    // Get the storage location of u_ProjectionMatrix
     u_ProjectionMatrix = gl.getUniformLocation(gl.program, 'u_ProjectionMatrix');
     if (!u_ProjectionMatrix) {
       console.log("Failed to get the storage location of u_ProjectionMatrix");
@@ -227,54 +231,63 @@ function connectVariablesToGLSL() {
       return false;
     }
 
+    // Get the storage location of u_Sampler1
     u_Sampler1 = gl.getUniformLocation(gl.program, 'u_Sampler1');
     if (!u_Sampler1) {
       console.log("Failed to get the storage location of u_Sampler1");
       return false;
     }
 
+    // Get the storage location of u_Sampler2
     u_Sampler2 = gl.getUniformLocation(gl.program, 'u_Sampler2');
     if (!u_Sampler2) {
       console.log("Failed to get the storage location of u_Sampler2");
       return false;
     }
 
+    // Get the storage location of u_whichTexture
     u_whichTexture = gl.getUniformLocation(gl.program, 'u_whichTexture');
     if (!u_whichTexture) {
       console.log("Failed to get the storage location of u_whichTexture");
       return false;
     }
 
+    // Get the storage location of u_pointLightPos
     u_pointLightPos = gl.getUniformLocation(gl.program, 'u_pointLightPos');
     if (!u_pointLightPos) {
       console.log("Failed to get the storage location of u_pointLightPos");
       return false;
     }
 
+    // Get the storage location of u_spotLightPos
     u_spotLightPos = gl.getUniformLocation(gl.program, 'u_spotLightPos');
     if (!u_spotLightPos) {
       console.log("Failed to get the storage location of u_spotLightPos");
       return false;
     }
 
+    // Get the storage location of u_spotLightAt
     u_spotLightAt = gl.getUniformLocation(gl.program, 'u_spotLightAt');
     if (!u_spotLightAt) {
       console.log("Failed to get the storage location of u_spotLightAt");
       return false;
     }
 
+    // Get the storage location of u_cameraPos
     u_cameraPos = gl.getUniformLocation(gl.program, 'u_cameraPos');
     if (!u_cameraPos) {
       console.log("Failed to get the storage location of u_cameraPos");
       return false;
     }
 
+    // Get the storage location of u_pointLightOn
     u_pointLightOn = gl.getUniformLocation(gl.program, 'u_pointLightOn');
     if (!u_pointLightOn) {
       console.log("Failed to get the storage location of u_pointLightOn");
       return false;
     }
 
+    // Get the storage location of u_spotLightOn
     u_spotLightOn = gl.getUniformLocation(gl.program, 'u_spotLightOn');
     if (!u_spotLightOn) {
       console.log("Failed to get the storage location of u_spotLightOn");
@@ -577,9 +590,6 @@ function renderAllShapes() {
     let sky = new Cube();
     sky.color = [1, 1, 1, 1];
     sky.textureNum = 0;
-    if (g_normalOn == true) {
-      sky.textureNum = -3;
-    }
     sky.matrix.scale(-g_size, -g_size, -g_size);
     sky.matrix.translate(-0.5, -0.5, -0.500001);
     sky.render();
@@ -601,9 +611,6 @@ function renderAllShapes() {
     // Draw sphere
     let sphere = new Sphere();
     sphere.textureNum = 3;
-    if (g_normalOn == true) {
-      sphere.textureNum = -3;
-    }
     sphere.matrix.scale(0.5, 0.5, 0.5);
     sphere.matrix.translate(-1, -1.5, 0);
     sphere.render();

@@ -57,6 +57,10 @@ class Sphere {
         this.color = color;
         let rgba = this.color;
 
+        if (g_normalOn == true) {
+            this.textureNum = -3;
+        }
+
         // Pass the texture number
         gl.uniform1i(u_whichTexture, this.textureNum);
 
