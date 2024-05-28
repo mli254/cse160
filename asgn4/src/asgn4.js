@@ -508,8 +508,9 @@ function updateAnimationAngles() {
 
       g_leftPawAngle = -(10*Math.sin(5*g_seconds));
     }
-
     g_pointLightPos[0] = Math.cos(g_seconds);
+    g_spotLightPos[0] = Math.cos(g_seconds);
+    g_spotLightPos[2] = Math.cos(g_seconds);
 }
 
 let g_camera = new Camera();
