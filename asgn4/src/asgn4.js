@@ -20,6 +20,7 @@ var VSHADER_SOURCE =
   }`
 
 // Fragment shader program
+// CREDIT: referenced code from https://gold-mari.github.io/160-Asgn-4/src/asg4.html for how to determine the spotlight angle
 var FSHADER_SOURCE =
   `precision mediump float;
   varying vec2 v_UV;
@@ -29,8 +30,11 @@ var FSHADER_SOURCE =
   uniform sampler2D u_Sampler1;
   uniform sampler2D u_Sampler2;
   uniform int u_whichTexture;
-  uniform bool u_lightOn;
-  uniform vec3 u_lightPos;
+  uniform bool u_pointLightOn;
+  uniform bool u_spotLightOn;
+  uniform vec3 u_pointLightPos;
+  uniform vec3 u_spotLightPos;
+  uniform vec3 u_spotLightAt;
   uniform vec3 u_cameraPos;
   varying vec4 v_VertPos;
   void main() {
@@ -53,40 +57,70 @@ var FSHADER_SOURCE =
       gl_FragColor = vec4(1, .2, .2, 1); // Error, reddish
     }
 
-    vec3 lightVector = u_lightPos-vec3(v_VertPos);
-    float r = length(lightVector);
+    // Declare composite lighting color
+    vec4 totalLight = vec4(0,0,0,1);
 
-    // Red-Green Visualization
-    // if (r<1.0) {
-    //   gl_FragColor = vec4(1,0,0,1);
-    // } else if (r<2.0) {
-    //   gl_FragColor = vec4(0,1,0,1);
-    // }
+    // Point Light
+    if (u_pointLightOn) {
+        vec3 lightVector = u_pointLightPos-vec3(v_VertPos);
+        float r = length(lightVector);
 
-    // Light Falloff Visualization (1/r^2)
-    // gl_FragColor = vec4(vec3(gl_FragColor)/(r*r), 1);
+        // N dot L
+        vec3 L = normalize(lightVector);
+        vec3 N = normalize(v_Normal);
+        float nDotL = max(dot(N,L), 0.0);
 
-    // N dot L
-    vec3 L = normalize(lightVector);
-    vec3 N = normalize(v_Normal);
-    float nDotL = max(dot(N,L), 0.0);
+        // Reflection
+        vec3 R = reflect(-L, N);
+        
+        // eye
+        vec3 F = normalize(u_cameraPos-vec3(v_VertPos));
 
-    // Reflection
-    vec3 R = reflect(-L, N);
-    
-    // eye
-    vec3 F = normalize(u_cameraPos-vec3(v_VertPos));
+        // Specular
+        float specular = pow(max(dot(F, R), 0.0), 10.0);
 
-    // Specular
-    float specular = pow(max(dot(F, R), 0.0), 10.0);
+        vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
+        vec3 ambient = vec3(gl_FragColor) * 0.3;
 
-    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
-    vec3 ambient = vec3(gl_FragColor) * 0.3;
-
-    if (u_lightOn) {
-      gl_FragColor = vec4(specular+diffuse+ambient, 1.0);
+        totalLight += vec4(specular+diffuse+ambient, 1.0);
     }
-    
+
+    // Spot Light
+    if (u_spotLightOn) {
+      vec3 lightVector = u_spotLightPos-vec3(v_VertPos);
+      vec3 directionVector = u_spotLightPos - u_spotLightAt;
+      vec3 D = normalize(directionVector);
+
+      float r = length(lightVector);
+
+      // N dot L
+      vec3 L = normalize(lightVector);
+      vec3 N = normalize(v_Normal);
+      float nDotL = max(dot(N,L), 0.0);
+      float angle = degrees(acos(dot(D, L)));
+
+      // Reflection
+      vec3 R = reflect(-L, N);
+      
+      // eye
+      vec3 F = normalize(u_cameraPos-vec3(v_VertPos));
+
+      // Specular
+      float specular = pow(max(dot(F, R), 0.0), 10.0);
+
+      vec3 diffuse = vec3(gl_FragColor) * nDotL;
+      vec3 totalSpotLight = specular+diffuse;
+
+
+      if (angle < 25.0) {
+        float angleNorm = angle/25.0;
+        float amt = angleNorm*angleNorm*angleNorm;
+        totalSpotLight = (1.0-amt)*totalSpotLight;
+        totalLight += vec4(totalSpotLight, 1.0);
+      }  
+    }
+    gl_FragColor = totalLight;
+
   }`
 
 // global variables
@@ -107,9 +141,12 @@ let u_Sampler0;
 let u_Sampler1;
 let u_Sampler2;
 let u_whichTexture;
-let u_lightPos;
+let u_pointLightPos;
+let u_spotLightPos;
+let u_spotLightAt;
 let u_cameraPos;
-let u_lightOn;
+let u_pointLightOn;
+let u_spotLightOn;
 
 function setupWebGL() {
     // Retrieve <canvas> element
@@ -208,9 +245,21 @@ function connectVariablesToGLSL() {
       return false;
     }
 
-    u_lightPos = gl.getUniformLocation(gl.program, 'u_lightPos');
-    if (!u_lightPos) {
-      console.log("Failed to get the storage location of u_lightPos");
+    u_pointLightPos = gl.getUniformLocation(gl.program, 'u_pointLightPos');
+    if (!u_pointLightPos) {
+      console.log("Failed to get the storage location of u_pointLightPos");
+      return false;
+    }
+
+    u_spotLightPos = gl.getUniformLocation(gl.program, 'u_spotLightPos');
+    if (!u_spotLightPos) {
+      console.log("Failed to get the storage location of u_spotLightPos");
+      return false;
+    }
+
+    u_spotLightAt = gl.getUniformLocation(gl.program, 'u_spotLightAt');
+    if (!u_spotLightAt) {
+      console.log("Failed to get the storage location of u_spotLightAt");
       return false;
     }
 
@@ -220,9 +269,15 @@ function connectVariablesToGLSL() {
       return false;
     }
 
-    u_lightOn = gl.getUniformLocation(gl.program, 'u_lightOn');
-    if (!u_lightOn) {
-      console.log("Failed to get the storage location of u_lightOn");
+    u_pointLightOn = gl.getUniformLocation(gl.program, 'u_pointLightOn');
+    if (!u_pointLightOn) {
+      console.log("Failed to get the storage location of u_pointLightOn");
+      return false;
+    }
+
+    u_spotLightOn = gl.getUniformLocation(gl.program, 'u_spotLightOn');
+    if (!u_spotLightOn) {
+      console.log("Failed to get the storage location of u_spotLightOn");
       return false;
     }
 
@@ -242,8 +297,11 @@ let g_prev_x = 0;
 let g_prev_y = 0;
 
 let g_normalOn = false;
-let g_lightOn = true;
-let g_lightPos = [0, 0, 1];
+let g_pointLightOn = true;
+let g_spotLightOn = true;
+let g_pointLightPos = [0, 0, 1];
+let g_spotLightPos = [-0.5, 1, 3];
+let g_spotLightAt = [1, 0, -2];
 
 // Body Angles
 let g_bodyAngleX = 0;
@@ -269,15 +327,25 @@ function addActionsForHTMLUI() {
     document.getElementById("normalOn").onclick = function() {g_normalOn = true;};
     document.getElementById("normalOff").onclick = function() {g_normalOn = false;};
 
-    // Light On/Off Button Events
-    document.getElementById("lightOn").onclick = function() {g_lightOn = true;};
-    document.getElementById("lightOff").onclick = function() {g_lightOn = false;};
+    // Point Light On/Off Button Events
+    document.getElementById("pointLightOn").onclick = function() {g_pointLightOn = true;};
+    document.getElementById("pointLightOff").onclick = function() {g_pointLightOn = false;};
 
-    // Light Slider Events
-    document.getElementById("lightSlideX").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_lightPos[0] = this.value/100; renderAllShapes();}})
-    document.getElementById("lightSlideY").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_lightPos[1] = this.value/100; renderAllShapes();}})
-    document.getElementById("lightSlideZ").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_lightPos[2] = this.value/100; renderAllShapes();}})
-    // Animation Button Events
+    // Spot Light On/Off Button Events
+    document.getElementById("spotLightOn").onclick = function() {g_spotLightOn = true;};
+    document.getElementById("spotLightOff").onclick = function() {g_spotLightOn = false;};
+
+    // Point Light Slider Events
+    document.getElementById("pointLightSlideX").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_pointLightPos[0] = this.value/100; renderAllShapes();}})
+    document.getElementById("pointLightSlideY").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_pointLightPos[1] = this.value/100; renderAllShapes();}})
+    document.getElementById("pointLightSlideZ").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_pointLightPos[2] = this.value/100; renderAllShapes();}})
+    
+    // Spot Light Slider Events
+    document.getElementById("spotLightSlideX").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_spotLightPos[0] = this.value/100; renderAllShapes();}})
+    document.getElementById("spotLightSlideY").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_spotLightPos[1] = this.value/100; renderAllShapes();}})
+    document.getElementById("spotLightSlideZ").addEventListener('mousemove', function(ev) {if(ev.buttons == 1) {g_spotLightPos[2] = this.value/100; renderAllShapes();}})  
+
+      // Animation Button Events
     document.getElementById("aniBodyOffButton").onclick = function() {g_bodyAnimation = false;};
     document.getElementById("aniBodyOnButton").onclick = function() {g_bodyAnimation = true;};
 }
@@ -441,7 +509,7 @@ function updateAnimationAngles() {
       g_leftPawAngle = -(10*Math.sin(5*g_seconds));
     }
 
-    g_lightPos[0] = Math.cos(g_seconds);
+    g_pointLightPos[0] = Math.cos(g_seconds);
 }
 
 let g_camera = new Camera();
@@ -473,21 +541,36 @@ function renderAllShapes() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Passing light position to GLSL
-    gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+    gl.uniform3f(u_pointLightPos, g_pointLightPos[0], g_pointLightPos[1], g_pointLightPos[2]);
+
+    gl.uniform3f(u_spotLightPos, g_spotLightPos[0], g_spotLightPos[1], g_spotLightPos[2]);
+
+    gl.uniform3f(u_spotLightAt, g_spotLightAt[0], g_spotLightAt[1], g_spotLightAt[2]);
 
     // Passing the camera position to GLSL
     gl.uniform3f(u_cameraPos, g_camera.eye.elements[0], g_camera.eye.elements[1], g_camera.eye.elements[2]);
 
-    // Determine whether to draw light or not
-    gl.uniform1i(u_lightOn, g_lightOn);
+    // Determine whether to draw point light or not
+    gl.uniform1i(u_pointLightOn, g_pointLightOn);
 
-    // Draw light
-    let light = new Cube();
-    light.color = [2, 2, 0, 1];
-    light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
-    light.matrix.scale(-.1, -.1, -.1);
-    light.matrix.translate(-0.5, -0.5, -0.5);
-    light.render();
+    // Determine whether to draw spot light or not
+    gl.uniform1i(u_spotLightOn, g_spotLightOn);
+
+    // Draw point light
+    let pointLight = new Cube();
+    pointLight.color = [2, 2, 0, 1];
+    pointLight.matrix.translate(g_pointLightPos[0], g_pointLightPos[1], g_pointLightPos[2]);
+    pointLight.matrix.scale(-.1, -.1, -.1);
+    pointLight.matrix.translate(-0.5, -0.5, -0.5);
+    pointLight.render();
+
+    // Draw spot light
+    let spotLight = new Cube();
+    spotLight.color = [2, 2, 0, 1];
+    spotLight.matrix.translate(g_spotLightPos[0], g_spotLightPos[1], g_spotLightPos[2]);
+    spotLight.matrix.scale(-.1, -.1, -.1);
+    spotLight.matrix.translate(-0.5, -0.5, -0.5);
+    spotLight.render();
 
     // Draw skybox
     let sky = new Cube();
