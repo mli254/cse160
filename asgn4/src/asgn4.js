@@ -111,9 +111,9 @@ var FSHADER_SOURCE =
       vec3 diffuse = vec3(gl_FragColor) * nDotL;
       vec3 totalSpotLight = specular+diffuse;
 
-
-      if (angle < 25.0) {
-        float angleNorm = angle/25.0;
+      float constraint = 15.0;
+      if (angle < constraint) {
+        float angleNorm = angle/constraint;
         float amt = angleNorm*angleNorm*angleNorm;
         totalSpotLight = (1.0-amt)*totalSpotLight;
         totalLight += vec4(totalSpotLight, 1.0);
